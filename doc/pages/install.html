@@ -1,0 +1,97 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=iso-8859-1"/>
+<meta http-equiv="Cache-Control" content="max-age=3600"/>
+<meta name="description" content="description"/>
+<meta name="keywords" content="keywords"/> 
+<meta name="author" content="author"/> 
+<link rel="stylesheet" type="text/css" href="../style/default.css" media="screen"/>
+<title>FastQTL</title>
+<script language="Javascript" src="../script/print_last_modif_date.js" ></script>
+</head>
+
+<body>
+<div class="content">
+
+	<div class="item"  id="item1">
+	<div class="options">
+		<h1>Downloading <b>FastQTL</b></h1>
+		<p>
+		Hereafter, the different versions of FastQTL.
+		</p>
+		
+		<table width=100%>
+			<tr>
+				<th width=20%>Version</th>
+				<th width=80%>Description</th>
+			</tr>
+			<tr>
+				<td>
+				<a href="http://fastqtl.sourceforge.net/files/FastQTL-2.165.linux.tgz">v2.165 (Binary + Examples for Linux)</a>
+				</td>
+				<td>
+				Binary of the first version released to the public.
+				It includes functions to perform a nominal pass of association and permutations.
+				<b>Source code will be made available upon publication.</b>
+				If it doesn't work on your machine, please contact <b>olivier.delaneau@gmail.com</b> to request a version compiled on a different machine.
+				</td>
+			</tr>
+			<tr>
+				<td>
+				<a href="http://fastqtl.sourceforge.net/files/FastQTL-2.165.macos.tgz">v2.165 (Binary + Examples for MacOS > 10.6)</a>
+				</td>
+				<td>
+				Binary of the first version released to the public.
+				It includes functions to perform a nominal pass of association and permutations.
+				<b>Source code will be made available upon publication.</b>
+				If it doesn't work on your machine, please contact <b>olivier.delaneau@gmail.com</b> to request a version compiled on a different machine.
+				</td>
+			</tr>
+			<tr>
+				<td>
+				<a href="http://fastqtl.sourceforge.net/files/FastQTL-2.166.linux.tgz">v2.166 (Binary + Source + Examples for Linux)</a>
+				</td>
+				<td>
+				Binary of the second version released to the public.
+				It includes a new column in the output file : the slope of the linear regression.
+				<b>Source code is now available!</b>
+				Source code is located in the src folder. Instructions to compile the code can be found in the next section or in the INSTALL file provided with the tarball. 
+				</td>
+			</tr>
+			
+		</table>
+	</div>
+	</div>
+
+	<div class="item"  id="item1">
+		<h1>Installing <b>FastQTL</b></h1>
+		<p>
+		In the <i>bin</i> folder is a static binary that should work on most machines.
+		If not, you can re-compile FastQTL following the following steps. 
+		First, few libraries are needed:
+		</p>
+		
+		<ul>
+		<li><b>The GNU Scientific Library:</b> This library is usually installed by default on most computers. FastQTL needs it for maximum likelihood estimations. Instructions to install it can be found <a href="http://www.gnu.org/software/gsl/">here</a>.</li>
+		<li><b>The Boost C++ libraries:</b> This collection of C++ libraries is also usually installed by default on most computers. FastQTL needs it to handle file descriptors and parse program options. Instructions to install it can be found <a href="http://www.boost.org/">here</a>.</li>
+		<li><b>The Zlib library:</b> This standard library allows gzipped files to be internally (un-)compressed by FastQTL. Instructions to install it can be found <a href="http://www.zlib.net/">here</a>.</li>
+		<li><b>The standalone Rmath library:</b> This (very useful) library provided by R contains all basic functions to simulate from standard probability distributions (ex: qnorm, pnorm, rnorm, etc ...). Instructions to install it can be found <a href="http://cran.r-project.org/doc/manuals/r-release/R-admin.html#The-standalone-Rmath-library">here</a>. FastQTL uses its F, Beta and Normal distribution routines. A pre-compiled version can be directly obtained by installing the package <i>r-mathlib</i> on Debian/Ubuntu or <i>libRmath-dev</i> on Fedora/RedHat.</li>
+		</ul>
+				
+		<p>
+		Once all libraries installed, just go in the FastQTL folder and compile the code using:  
+		</p>
+		
+		<code>
+		make
+		</code>
+		
+		<p>
+		This creates a binary of the program in the <i>bin</i> folder nammed <i>fastQTL</i>.
+		</p>
+	</div>
+
+	<div class="log"><script type="text/javascript"> print_last_modif_date("$Date: 2014-10-25 12:59:59 +0200 (Sat, 25 Oct 2014) $"); </script></div>
+</div>
+</body>
+</html>

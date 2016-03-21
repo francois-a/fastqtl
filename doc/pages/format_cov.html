@@ -1,0 +1,52 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=iso-8859-1"/>
+<meta http-equiv="Cache-Control" content="max-age=3600"/>
+<meta name="description" content="description"/>
+<meta name="keywords" content="keywords"/> 
+<meta name="author" content="author"/> 
+<link rel="stylesheet" type="text/css" href="../style/default.css" media="screen"/>
+<title>FastQTL</title>
+<script language="Javascript" src="../script/print_last_modif_date.js" ></script>
+</head>
+
+<body>
+<div class="content">
+	
+	<div class="item"  id="cov1">
+		<h1>Covariate file</h1>
+		<p>
+		The <b>COV</b> file contains the covariate data in simple txt format. 
+		Hereafter an example of 4 covariates for 4 samples.  
+		</p>
+		
+		<code>
+		id	UNR1	UNR2	UNR3	UNR4<br>
+		PC1	-0.02	0.14	0.16	-0.02<br>
+		PC2	0.01	0.11	0.10	0.01<br>
+		PC3	0.03	0.05	0.08	0.07<br>
+		BIN	1	0	0	1
+		</code>
+		
+		<p>
+		Herafter, some properties of this file:
+		<ol>
+			<li>The file is <i>TAB</i> delimited</li>
+			<li>First row gives the sample ID and each additional one corresponds to a single covariate</li> 
+			<li>First column gives the covariate ID and each additional one corresponds to a sample</li>
+			<li>The file should have S+1 rows and C+1 columns where S and C are the numbers of samples and covariates, respectively.</li>
+		</ol>
+		
+		<p>
+		Both quantitative and qualitative covariates are supported.
+		<b>Quantitative</b> covariates are assumed when only <b>numeric</b> values are provided.
+		<b>Qualitative</b> covariates are assumed when only <b>non-numeric</b> values are provided.
+		In practice, qualitative covariates with <i>F</i> factors are converted in <i>F-1</i> binary quantitative covariates.
+		</p>
+
+	</div>
+		
+	<div class="log"><script type="text/javascript"> print_last_modif_date("$Date: 2014-09-22 15:58:58 +0200 (Mon, 22 Sep 2014) $"); </script></div>
+</div>
+</body>
+</html>

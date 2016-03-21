@@ -1,0 +1,142 @@
+This document describes how to install/compile FastQTL on both Linux & Mac OS
+
+A. RUN FASTQTL ON LINUX
+B. COMPILE FASTQTL ON LINUX
+C. RUN FASTQTL ON MAC OS
+D. COMPILE FASTQTL ON MAC OS
+
+
+
+############################################################################################
+#                         A. RUN FASTQTL ON LINUX                                          #
+############################################################################################
+
+Just run:								./bin/fastqtl.static --help
+
+If it works, you should get this screen output:
+
+-------------------------------
+Fast QTL
+  * Authors : Olivier DELANEAU, Halit ONGEN, Alfonso BUIL & Manolis DERMITZAKIS
+  * Contact : olivier.delaneau@gmail.com
+  * Webpage : http://fastqtl.sourceforge.net/
+  * Version : v2.0
+
+Basic options:
+  --help                                Produces this help
+  --silent                              Silent mode on terminal
+  --seed arg (=1434116729)              Random number seed. Useful to replicate
+...
+Parallelization:
+  -K [ --chunk ] arg                    Specify which chunk needs to be 
+                                        processed
+  --commands arg                        Generates all commands
+  -R [ --region ] arg                   Region of interest.
+-------------------------------
+
+If it doesn't run, i'm afraid you've got to compile the code (See section B).
+
+############################################################################################
+#                         B. COMPILE FASTQTL ON LINUX                                      #
+############################################################################################
+
+(B.1) INSTALL MATH R LIBRARY
+	(1) Download R source code: 		wget http://cran.r-project.org/src/base/R-3/R-3.2.0.tar.gz
+	(2) Unzip R source code: 			tar xzvf R-3.2.0.tar.gz
+	(3) Go to R source code folder: 	cd R-3.2.0
+	(4) Configure Makefile: 			./configure
+	(5) Go to R math library folder: 	cd src/nmath/standalone
+	(6) Compile the code: 				make
+	(7) Go 2 folder backward:			cd ../..
+	(8) Save the current path:			RMATH=$(pwd)
+	
+(B.2.1) INSTALL BOOST (if not already installer, OPTION1: MANUALLY)
+	(1) Download BOOST:					http://sourceforge.net/projects/boost/files/boost/1.58.0/boost_1_58_0.tar.gz/download
+	(2) Unzip the package:				tar xzvf boost_1_58_0.tar.gz
+	(3) Go in the folder:				cd boost_1_58_0
+	(4) Install required packages:		./bootstrap.sh --prefix=/home/olivier/Desktop/myInstall --with-libraries=iostreams,program_options
+	
+(B.2.2) INSTALL BOOST (if not already installer, OPTION2: AUTOMATICALLY)
+	Many Linux distribution have BOOST package already built.
+	On Debian/Ubunutu, just run:		sudo apt-get install libboost-dev
+	On Redhat/CentOS, just run:			yum install boost-devel
+	
+(B.3) INSTALL GSL (if not already installed)
+	Most Linux distribution have GSL package already built.
+	On Debian/Ubunutu, just run:		sudo apt-get install libgsl0-dev
+	On Redhat/CentOS, just run:			yum install gsl-devel
+	
+	
+(B.4) COMPILE FASTQTL
+	(1) Go to the fastqtl folder:		cd FastQTL-2.165
+	(2) Compile the code running:		make cleanall && make
+		This later step needs the RMATH variable in A.1.8 to be defined.
+		This can be specified here by:	make RMATH=/my/path/to/r/src
+		
+############################################################################################
+#                         C. RUN FASTQTL ON MACOS                                          #
+############################################################################################
+
+(C.1) INSTALL HOMEBREW (if not already installed)
+	(1) Run:							ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+	
+(C.2) INSTALL BOOST (if not already installed)
+	(1) Run:							brew install boost
+	
+(C.3) INSTALL GSL (if not already installed)
+	(1) Run: 							brew install gsl
+	
+(C.4) TEST FASTQTL:
+	(1) Run:							./bin/fastqtl.macos --help
+	
+If it works, you should get this screen output:
+
+-------------------------------
+Fast QTL
+  * Authors : Olivier DELANEAU, Halit ONGEN, Alfonso BUIL & Manolis DERMITZAKIS
+  * Contact : olivier.delaneau@gmail.com
+  * Webpage : http://fastqtl.sourceforge.net/
+  * Version : v2.0
+
+Basic options:
+  --help                                Produces this help
+  --silent                              Silent mode on terminal
+  --seed arg (=1434116729)              Random number seed. Useful to replicate
+...
+Parallelization:
+  -K [ --chunk ] arg                    Specify which chunk needs to be 
+                                        processed
+  --commands arg                        Generates all commands
+  -R [ --region ] arg                   Region of interest.
+-------------------------------
+
+If it doesn't run, i'm afraid you've got to compile the code (See section D).
+		
+############################################################################################
+#                         D. COMPILE FASTQTL ON MACOS                                      #
+############################################################################################
+
+(D.1) INSTALL MATH R LIBRARY
+	(1) Download R source code: 		wget http://cran.r-project.org/src/base/R-3/R-3.2.0.tar.gz
+	(2) Unzip R source code: 			tar xzvf R-3.2.0.tar.gz
+	(3) Go to R source code folder: 	cd R-3.2.0
+	(4) Configure Makefile: 			./configure
+	(5) Go to R math library folder: 	cd src/nmath/standalone
+	(6) Compile the code: 				make
+	(7) Go 2 folder backward:			cd ../..
+	(8) Save the current path:			RMATH=$(pwd)
+	
+(D.2) INSTALL HOMEBREW (if not already installed)
+	(1) Run:							ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+	
+(D.3) INSTALL BOOST (if not already installed)
+	(1) Run:							brew install boost
+	
+(D.4) INSTALL GSL (if not already installed)
+	(1) Run: 							brew install gsl
+	
+(D.5) COMPILE FASTQTL
+	(1) Go to the fastqtl folder:		cd FastQTL-2.165
+	(2) Compile the code running:		make cleanall && make macos
+		This later step needs the RMATH variable in D.1.8 to be defined.
+		This can be specified here by:	make RMATH=/my/path/to/r/src

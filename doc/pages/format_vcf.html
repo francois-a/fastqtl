@@ -1,0 +1,63 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=iso-8859-1"/>
+<meta http-equiv="Cache-Control" content="max-age=3600"/>
+<meta name="description" content="description"/>
+<meta name="keywords" content="keywords"/> 
+<meta name="author" content="author"/> 
+<link rel="stylesheet" type="text/css" href="../style/default.css" media="screen"/>
+<title>FastQTL</title>
+<script language="Javascript" src="../script/print_last_modif_date.js" ></script>
+</head>
+
+<body>
+<div class="content">
+	
+	<div class="item"  id="vcf1">
+		<h1>VCF file format</h1>
+		<p>
+		The <b>VCF</b> file contains the genetic data (genotypes). Hereafter a minimal example:
+		</p>
+		
+		<code>
+		##fileformat=VCFv4.1<br>
+		#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT  UNR1	UNR2	UNR3	UNR4<br>
+		chr7	123	SNP1	A	G	100	PASS	INFO	GT:DS	0/0:0.001	0/0:0.000	0/1:0.999	1/1:1.999<br>
+		chr7	456	SNP2	T	C	100	PASS	INFO	GT:DS	0/0:0.001	0/0:0.000	0/1:1.100	0/0:0.100<br>
+		chr7	789	SNP3	A	T	100	PASS	INFO	GT:DS	1/1:2.000	0/1:1.001	0/0:0.010	0/1:0.890<br>
+		</code>
+		
+		<p>
+		A precise description of this file format can be found <A href=http://vcftools.sourceforge.net/specs.html>here</A>.
+		FastQTL needs at least one of the two following fields <b>GT</b> or <b>DS</b>. 
+		It uses in priority the <b>DS</b> field and if absent, the <b>GT</b> field from which it derives the required dosages.
+		We strongly recommend to use dosages instead of fixed genotypes in order to account for imputation uncertainty.		 
+		</p>
+		
+		<note>
+		Missing entries (<b>./.</b>, <b>./0</b> or <b>./1</b>) are internally imputed as mean dosage at the variant site.
+		</note>
+		
+	</div>
+	
+	<div class="item" id="vcf24">
+		<h1>Indexing VCF file (required)</h1>
+		<p>
+		To feed FastQTL with VCF files, you need to index them with tabix first. Hereafter, the commands that does it:
+		</p>
+		
+		<code>
+		bgzip genotypes.vcf && tabix -p vcf genotypes.vcf.gz		
+		</code>
+		
+		<p>
+		Look <A href=http://samtools.sourceforge.net/tabix.shtml>here</A> for more details on Tabix and Bgzip command lines.
+		The above command line produces a file <b>genotypes.vcf.gz.tbi</b> that contains the index for <b>data.vcf.gz</b>.
+		These tow files need to be together in the same folder in order for FastQTL do be able to also read the index file when reading <b>genotypes.vcf.gz</b>.   
+		</p>
+	</div>
+	
+	<div class="log"><script type="text/javascript"> print_last_modif_date("$Date: 2015-01-22 00:08:17 +0100 (Thu, 22 Jan 2015) $"); </script></div>
+</div>
+</body>
+</html>

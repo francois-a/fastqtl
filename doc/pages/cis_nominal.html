@@ -1,0 +1,250 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=iso-8859-1"/>
+<meta http-equiv="Cache-Control" content="max-age=3600"/>
+<meta name="description" content="description"/>
+<meta name="keywords" content="keywords"/> 
+<meta name="author" content="author"/> 
+<link rel="stylesheet" type="text/css" href="../style/default.css" media="screen"/>
+<title>FastQTL</title>
+<script language="Javascript" src="../script/print_last_modif_date.js" ></script>
+</head>
+
+<body>
+<div class="content">
+
+	<div class="item"  id="cis_map1">
+		<h1>Default nominal pass</h1>
+		<p>
+		To perform a simple nominal pass on the example data set, use:
+		</p>
+		
+		<code>
+		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --region 22:17000000-18000000 --out nominals.default.txt.gz
+		</code>
+		
+		<p>
+		This produces this output on the screen when everything works correctly:
+		</p>
+		
+		<img WIDTH=40% src="../img/fastqtl_screenshot_nominal.jpg"></img>
+		
+	</div>
+
+	<div class="item"  id="cis_map3">
+		<h1>Association testing parameters</h1>
+		<p>
+		Associations between genotype dosages and phenotype quantifications are measured with linear regressions (<a href="http://en.wikipedia.org/wiki/Pearson_product-moment_correlation_coefficient">here</a>), similar to the R/lm function. This model assumes that phenotypes are normally distributed. 
+		If your phenotype quantifications are not normally distributed, you can force them to match normal distributions N(0, 1) by using:
+		</p>
+		
+		<code>
+		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --region 22:17000000-18000000 --out nominals.quantile.txt.gz <b>--normal</b>
+		</code>
+		
+		<p>
+		To change the cis-window size (i.e. the maximal distance spanned by phenotype-variant pairs to be considered for testing) from default value 1e6 bp to 2e6 bp, use: 
+		</p>
+		
+		<code>
+		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --region 22:17000000-18000000 --out nominals.window2Mb.txt.gz <b>--window 2e6</b>
+		</code>
+		
+		<p>
+		To change the seed of the random number generator, which is particularly useful to replicate an analysis, use: 
+		</p>
+		
+		<code>
+		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --region 22:17000000-18000000 --out nominals.seed.txt.gz <b>--seed 123456789</b>
+		</code>
+
+		<p>
+		To add covariates in the linear regressions used for association testing, use: 
+		</p>
+		
+		<code>
+		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --region 22:17000000-18000000 --out nominals.cov.txt.gz <b>--cov covariates.txt.gz</b>
+		</code>
+		
+		<p>
+		The file <b>covariates.txt.gz</b> needs to be formatted as described <b>here</b>.
+		</p>
+	</div>
+	
+	<div class="item"  id="cis_map4">
+		<h1>Excluding/Including data</h1>
+		<p>
+		To exclude samples, variants, phenotypes or covariates from the analysis, you can use one of these options:
+		<ol>
+			<li>To exclude samples: <i>--exclude-samples file.exc</i></li>
+			<li>To exclude variants: <i>--exclude-sites file.exc</i></li>
+			<li>To exclude phenotypes: <i>--exclude-phenotypes file.exc</i></li>
+			<li>To exclude caovariates: <i>--exclude-covariates file.exc</i></li>
+		</ol>
+		</p>
+		
+		<p>
+		For instance, if you want to ignore 3 samples when analyzing the example data set, first create a text file containing the IDs of the samples to be excluded, called here <i>file.exc</i>:   
+		</p>
+		
+		<code>
+		UNR1<br>
+		UNR2<br>
+		UNR3<br>
+		</code>
+		
+		<p> 
+		Then, add the following option to the command line:
+		</p>
+		
+		<code>
+		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --region 22:17000000-18000000 --out nominals.sub.txt.gz <b>--exclude-samples file.exc</b>
+		</code>
+		
+		<p>
+		Similarly to these 4 options for data exclusion, you can also specify the set of samples, variants, phenotypes and covariates you wich to include in the analysis using the options: <i>--include-samples, --include-sites, --include-phenotypes and --include-covariates</i>, respectively.
+		</p>
+	</div>
+	
+	
+	<div class="item"  id="cis_map5">
+		<h1>Parallelization</h1>
+		<p>
+		As a first way to facilitate parallelization on compute cluster, we developed an option to run the analysis for just a chunk of molecular phenotypes.
+		The region of interest is specified with the standard <b>chr:start-end</b> format.
+		FastQTL extracts all phenotypes in this region, then all genotypes given the specified cis-window size and finally performs the analysis for this data subset.
+		For instance, to a nominal pass only for molecular phenotypes located on chr22 between coordinates 18Mb and 20Mb, use: 
+		</p>
+		
+		<code>
+		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz <b>--region chr22:18000000-20000000</b> --out nominals.18M20M.txt.gz
+		</code>
+		
+		<note>
+		This option requires both the genotype and phenotype files to be indexed with TABIX!
+		</note>
+		
+		<p>
+		This strategy is quite similar to what is commonly used for genotype imputation, where only small chunks of data are imputed one at a time in seperate jobs.
+		However in practice, it is usually quite complicated to properly split the genome into a given number of chunks with correct coordinates.
+		To facilitate this, we embedded all coordinates into a chunk-based system such that you only need to specify the chunk index you want to run. 
+		Then, splitting the genome into chunks, extraction of data, and analysis are automatically performed.
+		For instance, to run analysis on chunk number 25 when splitting the example data set (i.e. genome) into 30 chunks, just run:   		   
+		</p>
+		
+		<code>
+		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --out nominals.chunk25.txt.gz <b>--chunk 25 30</b>
+		</code>
+		
+		<p>
+		If you want to submit the whole analysis into 30 jobs on your compute cluster, just run:
+		</p>
+		
+		<code>
+		for j in <b>$(seq 1 30)</b>; do<br>
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo "fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --out nominals.txt.gz <b>--chunk $j 30</b>" | qsub<br>
+		done
+		</code>
+		
+		<p>
+		Here <b>qsub</b> needs to be changed according to the job submission system used (bsub, psub, etc...).  
+		</p>
+		
+		<note>
+		In this simple example, we only split the data into 30 chunks. 
+		However, a realistic whole genome analysis would require to split the data in 200, 500 or even 1,000 chunks to fully use the capabilities of a modern compute cluster.  
+		</note>
+		
+		<p>
+		Finally, we also developed a slightly different parallelization option that, this time, allows to generate all required command lines and write them into a file.
+		Let take the same example as before, that is splitting the analysis into 10 jobs: 
+		</p>
+		
+		<code>
+		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --out results <b>--commands 10 commands.10.txt</b>
+		</code>
+		
+		<p>
+		Now if you look at the file <b>commands.10.txt</b>, you'll see this:
+		</p>
+		
+		<code>
+		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --out nominals.22:17517460-20748406 --region 22:17517460-20748406<br>
+ 		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --out nominals.22:36424473-39052635 --region 22:36424473-39052635<br>
+ 		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --out nominals.22:24407642-30163001 --region 22:24407642-30163001<br>
+ 		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --out nominals.22:42017123-45704850 --region 22:42017123-45704850<br>
+ 		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --out nominals.22:20792146-22307210 --region 22:20792146-22307210<br>
+ 		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --out nominals.22:39052641-39915701 --region 22:39052641-39915701<br>
+ 		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --out nominals.22:30163352-36044443 --region 22:30163352-36044443<br>
+ 		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --out nominals.22:45809500-51222092 --region 22:45809500-51222092<br>
+ 		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --out nominals.22:22337213-24322661 --region 22:22337213-24322661<br>
+ 		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --out nominals.22:39928860-42017101 --region 22:39928860-42017101<br>
+		</code>
+		
+		<p>
+		Where region coordinates are automatically determined given the total number of chunks specified.
+		You can then submit all these commands on a cluster using:
+		</p>
+		
+		<code>
+		while read c; do<br>
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo $c | qsub<br>
+		done <b>< commands.10.txt</b>
+		</code>
+	</div>
+
+	<div class="item"  id="cis_map7">
+		<h1>Output file format of a <b>nominal</b> pass</h1>
+		
+		<p>
+		Once the analysis completed and all output file collected, you can easily concat and compress all of them into a single output file in order to ease downstream analysis with:
+		</p>
+		
+		<code>
+		zcat nominals.chunk*.txt.gz | gzip -c > nominals.all.chunks.txt.gz
+		</code>
+				
+		<p>
+		After having performed a nominal pass on the data and concatenating the output files, you end up with a file with 5 columns and N lines corresponding to all N phenotype-variant pairs tested.
+		For instance, if you tested 1,000 molecular phenotypes and for each there are 1,000 variants in cis, it means that you'll get 1,000,000 lines in the output files.
+		Hereafter a short example: 
+		</p>
+		
+		<code>
+		ENSG00000237438.1 snp_22_18516782 999322 0.602225<br>
+		ENSG00000237438.1 snp_22_18516997 999537 0.796906<br>
+		ENSG00000237438.1 snp_22_18517084 999624 0.20782<br>
+		ENSG00000237438.1 snp_22_18517312 999852 0.196428<br>
+		ENSG00000177663.8 snp_22_16566314 -999530 0.77477<br>
+		ENSG00000177663.8 snp_22_16566347 -999497 0.57854<br>
+		ENSG00000177663.8 snp_22_16566779 -999065 0.379964<br>
+		ENSG00000177663.8 snp_22_16580254 -985590 0.525688<br>
+		ENSG00000177663.8 snp_22_16581158 -984686 0.329372<br>
+		ENSG00000177663.8 snp_22_16581386 -984458 0.461748<br>
+		</code>
+		
+		<p>
+		In this file, the 4 columns correspond to:
+		<ol>
+			<li>ID of the tested molecular phenotype (in this particular case, the gene ID)</li>
+			<li>ID of the tested variant (in this case a SNP)</li>
+			<li>Distance between the variant and the phenotype in bp</li>
+			<li>The nominal p-value of association</li>
+		</ol>
+		</p>
+		
+		<p>
+		To make this file much smaller, you can output only significant phenotype-variant pairs with a pvalue below 0.001 for instance.
+		To do so, use:
+		</p>
+		
+		<code>
+		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --region 22:17000000-18000000 <b>--threshold 0.001</b> --out nominals.threshold.txt.gz
+		</code>
+		
+	</div>
+	
+	<div class="log"><script type="text/javascript"> print_last_modif_date("$Date: 2014-10-25 12:59:59 +0200 (Sat, 25 Oct 2014) $"); </script></div>
+</div>
+</body>
+</html>

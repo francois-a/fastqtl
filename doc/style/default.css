@@ -1,0 +1,228 @@
+/* COMMON */
+
+* {
+	margin: 0;
+	padding: 0;
+}
+
+a {
+	color: #36C;
+}
+
+a:hover {
+	color: #06F;
+}
+
+
+body {
+	color: #444;
+	font: normal 90% "Lucida Sans Unicode",sans-serif;
+	background-color: #EEE; 
+	margin: 0;
+}
+
+input {
+	color: #555;
+	font: normal 1.1em "Lucida Sans Unicode",sans-serif;
+}
+
+p,note,code,ul, ol {
+	font-size: 1.2em;
+	padding-bottom: 1.2em;
+}
+
+h1 {
+	font-size: 1.4em;
+}
+
+.highligth {
+	color: #f00
+} 
+
+code {
+	border: 1px solid #F0F0F0;
+	border-left: 5px solid #39F;
+	color: #555;
+	display: block;
+	/* font: normal 1.1em "Lucida Sans Unicode",serif; */
+	font: normal 1.2em "MS Courier New", monospace;
+	margin-bottom: 12px;
+	padding: 8px 10px;
+}
+
+code table {
+	border-collapse:collapse;
+	font: normal 1em "MS Courier New", monospace;
+}
+
+code th, td {
+	border:0px;
+	padding-right:20px;
+	text-align:left;
+}
+
+note {
+	border: 1px solid #F0F0F0;
+	border-left: 5px solid #F0F0F0;
+	display: block;
+	font: normal "Lucida Sans Unicode",sans-serif;
+	font-size: 1.3em;
+	margin-bottom: 12px;
+	padding: 8px 10px;	
+}
+
+h1,h2,h3 {
+	color: #367EA6;
+}
+
+/* HEADER */
+
+.header {
+	color: #666;
+	background: #EEE;
+	font: bold 3em "MS Courier New", monospace;
+	margin-bottom: 0px;
+	text-align: center;
+}
+
+/* FOOTER */
+.footer {
+	background: #EEE;
+	color: #666;
+	font-size: 1.2em;
+	text-align: center;
+}
+.footer a {
+	color: #36C;
+	text-decoration: none;
+}
+.footer a:hover {
+	color: #06F;
+	text-decoration: underline;
+}
+
+/* LEFT MENU */
+.sidenav {
+	padding: 10px;
+}
+
+.sidenav .item {
+	font-size: 1em;
+	padding: 6px 12px;
+	border: 1px solid #CCC;
+	background: #FFF;
+	margin-bottom: 8px;
+}
+
+.sidenav h1 {
+	color: #367EA6;
+	margin-bottom: 8px;
+}
+
+.sidenav ul {
+	margin: 5px;
+	padding: 0px;
+}
+.sidenav li {
+	font-size: 0.8em;
+	list-style: none;
+}
+
+.sidenav a {
+	color: #367EA6;
+	text-decoration: none;
+}
+
+.sidenav a:hover {
+	color: #111;
+}
+
+.sidenav li a {
+	color: #666;
+	display: block;
+	font-size: 1em;
+	padding: 3px 6px 3px 14px;
+	text-decoration: none;
+}
+.sidenav li a:hover {
+	color: #111;
+}
+
+/* CONTENT */
+.content {
+	padding: 10px;
+}
+
+.content .item {
+	padding: 6px 12px;
+	border: 1px solid #CCC;
+	background: #FFF;
+	margin-bottom: 8px;
+}
+
+.content .log {
+	/*padding: 6px 12px;*/
+	border: 1px solid #CCC;
+	background: #FFF;
+	/*margin-bottom: 8px;*/
+	text-align: center;
+	width: 250px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.content .descr {
+	color: #333;
+	font-size: 0.8em;
+	margin-bottom: 6px;
+}
+
+.content h1 {
+	margin-bottom: 20px;
+}
+
+.content ul {
+	list-style-image: url(../img/li.gif);
+}
+
+.content li {
+	margin-left: 18px;
+}
+
+/* TABLE OPTION */
+
+.options table {
+	border: 1px solid #BBB;
+	border-collapse: collapse;
+}
+
+.options th {
+	font: bold 0.9em "MS Courier New", monospace;
+	color: #367EA6;
+	border: 1px solid #BBB;
+	text-align: left;
+	vertical-align: top;
+	padding: 5px;
+}
+
+.options td {
+	font: normal 0.8em "MS Courier New", monospace;
+	border: 1px solid #BBB;
+	text-align: left;
+	vertical-align: top;
+	padding: 0px 5px;
+}
+
+/* TABLE FORM */
+
+.form table {
+	border: 0px;
+	border-collapse: collapse;
+}
+
+.form td {
+	font: normal 0.8em "MS Courier New";
+	border: 0px;
+	text-align: left;
+	padding: 5px;
+}

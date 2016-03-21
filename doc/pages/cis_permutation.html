@@ -1,0 +1,354 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=iso-8859-1"/>
+<meta http-equiv="Cache-Control" content="max-age=3600"/>
+<meta name="description" content="description"/>
+<meta name="keywords" content="keywords"/> 
+<meta name="author" content="author"/> 
+<link rel="stylesheet" type="text/css" href="../style/default.css" media="screen"/>
+<title>FastQTL</title>
+<script language="Javascript" src="../script/print_last_modif_date.js" ></script>
+</head>
+
+<body>
+<div class="content">
+
+	<div class="item"  id="cis_perm1">
+		<h1>Default permutation pass</h1>
+		<p>
+		To perform a permutation based analysis of the example data set using a total of 1,000 permutations, use: 
+		</p>
+		
+		<code>
+		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --region 22:17000000-18000000 <b>--permute 1000</b> --out permutations.default.txt.gz
+		</code>
+		
+		<p>
+		This produces this output on the screen when everything works correctly:
+		</p>
+		
+		<img WIDTH=40% src="../img/fastqtl_screenshot_permutation.jpg"></img>
+		
+		<br>
+		<p>
+		You can increase the number of permutations to 10,000 using: 
+		</p>
+		
+		<code>
+		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --region 22:17000000-18000000 <b>--permute 10000</b> --out permutations.10K.txt.gz
+		</code>
+
+		<p>
+		You can also perform an adaptive permutation pass on the example data set (i.e. with a number of permutations that varies in function of the significance).
+		To run between 100 and 100,000 permutations, use:
+		</p>
+		
+		<code>
+		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --region 22:17000000-18000000 <b>--permute 100 100000</b> --out permutations.adaptive.txt.gz
+		</code>
+		
+	</div>
+	
+	<div class="item"  id="cis_map3">
+		<h1>Association testing parameters</h1>
+		<p>
+		Associations between genotype dosages and phenotype quantifications are measured with linear regressions (<a href="http://en.wikipedia.org/wiki/Pearson_product-moment_correlation_coefficient">here</a>), similar to the R/lm function. This model assumes that phenotypes are normally distributed. 
+		If your phenotype quantifications are not normally distributed, you can force them to match normal distributions N(0, 1) by using:
+		</p>
+		
+		<code>
+		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --region 22:17000000-18000000 --permute 1000 --out permutations.quantile.txt.gz <b>--normal</b>
+		</code>
+		
+		<p>
+		To change the cis-window size (i.e. the maximal distance spanned by phenotype-variant pairs to be considered for testing) from default value 1e6 bp to 2e6 bp, use:
+		</p>
+		
+		<code>
+		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --region 22:17000000-18000000 --permute 1000 --out permutations.window2Mb.txt.gz <b>--window 2e6</b>
+		</code>
+		
+		<p>
+		To change the seed of the random number generator, which is particularly useful to replicate an analysis, use:
+		</p>
+		
+		<code>
+		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --region 22:17000000-18000000 --permute 1000 --out permutations.seed.txt.gz <b>--seed 123456789</b>
+		</code>
+
+		<p>
+		To add covariates in the linear regressions used for association testing, use: 
+		</p>
+		
+		<code>
+		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --region 22:17000000-18000000 --permute 1000 --out permutations.txt.gz <b>--cov covariates.txt.gz</b>
+		</code>
+		
+		<p>
+		The file <b>covariates.txt.gz</b> needs to be formatted as described <b>here</b>.
+		</p>
+	</div>
+	
+	<div class="item"  id="cis_map4">
+		<h1>Excluding/Including data</h1>
+		<p>
+		To exclude samples, variants, phenotypes or covariates from the analysis, you can use one of these options:
+		<ol>
+			<li>To exclude samples: <i>--exclude-samples file.exc</i></li>
+			<li>To exclude variants: <i>--exclude-sites file.exc</i></li>
+			<li>To exclude phenotypes: <i>--exclude-phenotypes file.exc</i></li>
+			<li>To exclude caovariates: <i>--exclude-covariates file.exc</i></li>
+		</ol>
+		</p>
+		
+		<p>
+		For instance, if you want to ignore 3 samples when analyzing the example data set, first create a text file containing the IDs of the samples to be excluded, called here <i>file.exc</i>:
+		</p>
+		
+		<code>
+		UNR1<br>
+		UNR2<br>
+		UNR3<br>
+		</code>
+		
+		<p> 
+		Then, run the following command line:
+		</p>
+		
+		<code>
+		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --region 22:17000000-18000000 --permute 1000 --out permutations.sub.txt.gz <b>--exclude-samples file.exc</b>
+		</code>
+		
+		<p>
+		Similarly to these 4 options for data exclusion, you can also specify the set of samples, variants, phenotypes and covariates to be included in the analysis using the options: <i>--include-samples, --include-sites, --include-phenotypes and --include-covariates</i>, respectively.
+		</p>
+	</div>
+		
+	<div class="item"  id="cis_map5">
+		<h1>Parallelization</h1>
+		<p>
+		As a first way to facilitate parallelization on compute cluster, we developed an option to run the analysis for just a chunk of molecular phenotypes.
+		The region of interest is specified with the standard <b>chr:start-end</b> format.
+		Then, FastQTL extracts all phenotypes in this region, then all genotypes given the specified cis-window size and finally perform the analysis for this data subset.
+		For instance, to run QTL mapping only for molecular phenotypes on chr22 with coordinates between 18Mb and 20Mb, use: 
+		</p>
+		
+		<code>
+		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz <b>--region chr22:18000000-20000000</b> --permute 1000 --out permutations.18M20M.txt.gz
+		</code>
+		
+		<note>
+		This option requires both the genotype and phenotype files to be indexed with TABIX!
+		</note>
+		
+		<p>
+		This strategy is quite similar to what is commonly used for genotype imputation, where only small chunks of data are imputed one at a time in seperate jobs.
+		However in practice, it is usually quite complicated to properly split the genome into a given number of chunks with correct coordinates.
+		To facilitate this, we embedded all coordinates into a chunk-based system such that you only need to specify the chunk index you want to run. 
+		Then, splitting the genome into chunks, extraction of data, and analysis are automatically performed.
+		For instance, to run analysis on chunk number 25 when splitting the example data set (i.e. genome) into 30 chunks, just run:   		   
+		</p>
+		
+		<code>
+		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --permute 1000 --out permutations.chunk25.txt.gz <b>--chunk 25 30</b>
+		</code>
+		
+		<p>
+		If you want to submit the whole analysis into 30 jobs on your compute cluster, just run:
+		</p>
+		
+		<code>
+		for j in <b>$(seq 1 30)</b>; do<br>
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo "fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --permute 1000 --out permutations.txt.gz <b>--chunk $j 30</b>" | qsub<br>
+		done
+		</code>
+		
+		<p>
+		Here <b>qsub</b> needs to be changed according to the job submission system used (bsub, psub, etc...).  
+		</p>
+		
+		<note>
+		In this simple example, we only split the data into 30 chunks. 
+		However, a realistic whole genome analysis would require to split the data in 200, 500 or even 1,000 chunks to fully use the capabilities of a modern compute cluster.  
+		</note>
+		
+		<p>
+		Finally, we also developed a slightly different parallelization option that, this time, allows to generate all required command lines and write into a file.
+		Let take the same example as before, that is splitting the analysis into 10 jobs: 
+		</p>
+		
+		<code>
+		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --permute 1000 --out permutations <b>--commands 10 commands.10.txt</b>
+		</code>
+		
+		<p>
+		Now if you look at the file <b>commands.10.txt</b>, you'll get this:
+		</p>
+		
+		<code>
+		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --permute 1000 --out permutations.22:17517460-20748406 --region 22:17517460-20748406<br>
+ 		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --permute 1000 --out permutations.22:36424473-39052635 --region 22:36424473-39052635<br>
+ 		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --permute 1000 --out permutations.22:24407642-30163001 --region 22:24407642-30163001<br>
+ 		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --permute 1000 --out permutations.22:42017123-45704850 --region 22:42017123-45704850<br>
+ 		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --permute 1000 --out permutations.22:20792146-22307210 --region 22:20792146-22307210<br>
+ 		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --permute 1000 --out permutations.22:39052641-39915701 --region 22:39052641-39915701<br>
+ 		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --permute 1000 --out permutations.22:30163352-36044443 --region 22:30163352-36044443<br>
+ 		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --permute 1000 --out permutations.22:45809500-51222092 --region 22:45809500-51222092<br>
+ 		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --permute 1000 --out permutations.22:22337213-24322661 --region 22:22337213-24322661<br>
+ 		fastQTL --vcf genotypes.vcf.gz --bed phenotypes.bed.gz --permute 1000 --out permutations.22:39928860-42017101 --region 22:39928860-42017101<br>
+		</code>
+		
+		<p>
+		Where, region coordinates are automatically determined given the total number of chunks provided.
+		Then, you can submit all these commands on a cluster using for example:
+		</p>
+		
+		<code>
+		while read c; do<br>
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo $c | qsub<br>
+		done <b>| commands.10.txt</b>
+		</code>
+	</div>
+
+	<div class="item"  id="cis_map8">
+		<h1>Output file format of a <b>permutation</b> pass</h1>
+		
+		<p>
+		Once the analysis completed and all output file collected, you can easily concat and compress all files into a single output file to ease downstream analysis with:
+		</p>
+		
+		<code>
+		zcat permutations.chunk*.txt.gz | gzip -c > permutations.all.chunks.txt.gz
+		</code>
+				
+		<p>
+		After having performed a permutation pass on the data and concatenating the output files, you end up with a file with 10 columns and M lines with M being the total number of tested molecular phenotypes.
+		For instance, if you tested 1,000 molecular phenotypes, it means that you'll get 1,000 lines in the output files.
+		Hereafter a short example: 
+		</p>
+		
+		<code>
+		ENSG00000237438.1 7966 0.93436 2871.25 376.072 snp_22_17542810 25350 5.48728e-13 0.000999001 4.38131e-09<br>
+		ENSG00000177663.8 8165 0.936488 3667.52 392.593 snp_22_17497295 -68549 0.000167489 0.376623 0.361675<br>
+		ENSG00000183307.3 8279 1.03157 2719.43 369.406 snp_22_17587975 -14282 3.11324e-08 0.000999001 6.78199e-05<br>
+		ENSG00000069998.8 8466 1.04834 2472.36 358.392 snp_22_17639837 -6340 5.01155e-11 0.000999001 1.26653e-07<br>
+		ENSG00000093072.10 8531 0.934923 5838.18 406.904 snp_22_17699299 -39826 9.028e-05 0.246753 0.245706<br>
+		</code>
+	
+		<p>
+		In this file, the 10 columns correspond to:
+		<ol>
+			<li>ID of the tested molecular phenotype (in this particular case, the gene ID)</li>
+			<li>Number of variants tested in cis for this phenotype</li>
+			<li>MLE of the shape1 parameter of the Beta distribution</li>
+			<li>MLE of the shape2 parameter of the Beta distribution</li>
+			<li>Dummy [To be described later]</li>
+			<li>ID of the best variant found for this molecular phenotypes (i.e. with the smallest p-value)</li>
+			<li>Distance between the molecular phenotype - variant pair</li>
+			<li>The <b>nominal</b> p-value of association that quantifies how significant from 0, the regression coefficient is</li>
+			<li>A first <b>permutation</b> p-value directly obtained from the permutations with the direct method. This is basically a corrected version of the nominal p-value that accounts for the fact that multiple variants are tested per molecular phenotype.
+			<li>A second <b>permutation</b> p-value obtained via beta approximation. We advice to use this one in any downstream analysis.
+		</ol>
+		</p>
+	</div>
+
+	<div class="item"  id="cis_map8">
+		<h1>Checking that the experiment went well</h1>
+		
+		<p>
+		To check that the beta approximated permutation p-values are well estimated, load the data in R and make the following plot:
+		</p>
+		
+		<code>
+		R> d = read.table("permutations.all.chunks.txt.gz", hea=F, stringsAsFactors=F)<br>
+		R> colnames(d) = c("pid", "nvar", "shape1", "shape2", "dummy", "sid", "dist", "npval", "ppval", "bpval")<br>
+		R> plot(d$ppval, d$bpval, xlab="Direct method", ylab="Beta approximation", main="Check plot")<br>
+		R> abline(0, 1, col="red")<br>
+		</code>
+				
+		<img WIDTH=40% src="../img/fastqtl_checks.jpg"></img>
+				
+		<br>
+		<p>
+		The expectation is to get all the points along the diagonal as on the plot above. 
+		This shows that unsignificant beta pproximated p-values are well estimated and therefore that the estimations went well.
+		</p>
+	</div>
+		
+	<div class="item"  id="cis_map9">
+		<h1>Controlling for multiple phenotypes being tested</h1>
+		<p>
+		Once obtained all permutation p-values for all the tested molecular phenotypes, we need now to account for the fact that many molecular phenotypes are tested whole genome in order to determine the significant QTLs.
+		To do so, we propose here 3 approaches; from the most to the least stringent. 
+		First, load the data in R using:
+		</p>
+		
+		<code>
+		R> d = read.table("permutations.all.chunks.txt.gz", hea=F, stringsAsFactors=F)<br>
+		R> colnames(d) = c("pid", "nvar", "shape1", "shape2", "dummy", "sid", "dist", "npval", "ppval", "bpval")<br>
+		</code>
+		
+		<br>
+		<h3>Bonferroni correction</h3>
+		<p>
+		Look <a href="http://en.wikipedia.org/wiki/Bonferroni_correction">here</a> for some details on the correction and <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/p.adjust.html">here</a> for some details on the R function used in this example.
+		To apply the Bonferroni correction on the permutation p-values derived from beta approximation, use:   
+		</p>
+		
+		<code>
+		<b>R></b> d$bonferroni = p.adjust(d$bpval, method="bonferroni")
+		</code>
+		
+		<p>
+		Then, you can extract all significant MP-QTL pairs at &alpha;=0.05 and write them to a file <b>permutations.all.chunks.bonferroni.txt</b> using:
+		</p>
+		
+		<code>
+		<b>R></b> write.table(d[which(d$bonferroni <= 0.05), c(1,6)], "permutations.all.chunks.bonferroni.txt", quote=F, row.names=F, col.names=T)
+		</code>
+		
+		<br>
+		<h3>Benjamini & Hochberg correction</h3>
+		<p>
+		Look <a href="http://en.wikipedia.org/wiki/False_discovery_rate">here</a> for some details on the correction and <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/p.adjust.html">here</a> for some details on the R function used in this example. 
+		To apply the Benjamini & Hochberg correction on the permutation p-values derived from beta approximation, use:   
+		</p>
+		
+		<code>
+		<b>R></b> d$bh = p.adjust(d$bpval, method="fdr")
+		</code>
+		
+		<p>
+		Then, you can extract all significant MP-QTL pairs with a 10% false discovery rate (FDR) for instance and write them to a file <b>permutations.all.chunks.benjamini.txt</b> using:
+		</p>
+
+		<code>
+		<b>R></b> write.table(d[which(d$bh <= 0.10), c(1,6)], "permutations.all.chunks.benjamini.txt", quote=F, row.names=F, col.names=T)
+		</code>
+		
+		<br>
+		<h3>Storey & Tibshirani correction</h3>
+		<p>
+		Look <a href="http://en.wikipedia.org/wiki/False_discovery_rate">here</a> for some details on the correction and <a href="http://svitsrv25.epfl.ch/R-doc/library/qvalue/html/qvalue.html">here</a> for some details on the R function used in this example.
+		To install the R/qvalue package on your system, look <a href="http://www.bioconductor.org/packages/release/bioc/html/qvalue.html">here</a>. 
+		Then to apply the Storey & Tibshirani correction on the permutation p-values derived from beta approximation, use:   
+		</p>
+		
+		<code>
+		<b>R></b> library(qvalue)
+		<b>R></b> d$st = qvalue(d$bpval)$qvalues
+		</code>
+				
+		<p>
+		Then, you can extract all significant MP-QTL pairs with a 10% false discovery rate (FDR) for instance and write them to a file <b>whole_analysis.storey.permutations</b> using:
+		</p>
+
+		<code>
+		<b>R></b> write.table(d[which(d$st <= 0.10), c(1,6)], "permutations.all.chunks.storey.txt", quote=F, row.names=F, col.names=T)
+		</code>
+	</div>
+	
+	<div class="log"><script type="text/javascript"> print_last_modif_date("$Date: 2015-04-01 16:11:24 +0200 (Wed, 01 Apr 2015) $"); </script></div>
+</div>
+</body>
+</html>

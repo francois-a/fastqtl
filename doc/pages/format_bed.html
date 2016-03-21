@@ -1,0 +1,71 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=iso-8859-1"/>
+<meta http-equiv="Cache-Control" content="max-age=3600"/>
+<meta name="description" content="description"/>
+<meta name="keywords" content="keywords"/> 
+<meta name="author" content="author"/> 
+<link rel="stylesheet" type="text/css" href="../style/default.css" media="screen"/>
+<title>FastQTL</title>
+<script language="Javascript" src="../script/print_last_modif_date.js" ></script>
+</head>
+
+<body>
+<div class="content">
+	
+	<div class="item"  id="bed1">
+		<h1>BED file</h1>
+		<p>
+		The <b>BED</b> file contains the phenotypic data in a UCSC BED derived format. It is basically a BED file with one additional column per sample.
+		Hereafter an example of 3 molecular phenotypes for 4 samples.  
+		</p>
+		
+		<code>
+		#Chr	start	end	ID	UNR1	UNR2	UNR3	UNR4
+		chr1	173863	173864	ENSG123	-0.50	0.82	-0.71	0.83<br>
+		chr1	685395	685396	ENSG456	-1.13	1.18	-0.03	0.11<br>
+		chr1	700304	700305	ENSG789	-1.18	1.32	-0.36	1.26<br>
+		</code>
+	
+		<p>
+		This file is <i>TAB</i> delimited.
+		Each line corresponds to a single molecular phenotype.
+		The first 4 columns are:
+		</p>
+		
+		<ol>
+			<li>Chromosome ID <i>[string]</i></li>
+			<li>Start genomic position of the phenotype (e.g. TSS) <i>[integer]</i></li>
+			<li>End genomic position of the phenotype (e.g. TSS) <i>[integer]</i></li>
+			<li>Phenotype ID <i>[string]</i></li>
+		</ol>
+		
+		<p>
+		Then additional columns give phenotype quantifications for all samples.
+		Phenotype quantifications are encoded with floating numbers. 
+		This file should have P lines and N+4 columns where P and N are the numbers of phenotypes and samples, respectively.
+		</p>
+	</div>
+	
+	<div class="item" id="bed2">
+		<h1>Indexing BED file (required)</h1>
+		<p>
+		To feed FastQTL with BED files containing phenotypes, you need to index them with tabix first. Hereafter, the commands that does it:
+		</p>
+		
+		<code>
+		bgzip phenotypes.bed && tabix -p bed phenotypes.bed.gz		
+		</code>
+		
+		<p>
+		Look <A href=http://samtools.sourceforge.net/tabix.shtml>here</A> for more details on Tabix and Bgzip command lines.
+		The above command line produces a file <b>phenotypes.bed.gz.tbi</b> that contains the index for <b>data.bed.gz</b>.
+		These tow files need to be together in the same folder in order for FastQTL do be able to also read the index file when reading <b>phenotypes.bed.gz</b>.   
+		</p>
+	</div>
+	
+		
+	<div class="log"><script type="text/javascript"> print_last_modif_date("$Date: 2015-01-22 00:08:17 +0100 (Thu, 22 Jan 2015) $"); </script></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,60 @@
+#to Compile statistically on you machine, set up correctly the variables INC_MATH, INC_BOOST, LIB_RMATH, LIB_BPO, LIB_BIO before running make
+
+#compiler
+CXX=g++
+
+#internal paths
+VPATH=$(shell for file in `find src -name *.cpp`; do echo $$(dirname $$file); done)
+PATH_TABX=lib/Tabix
+PATH_EIGN=lib/Eigen
+
+#compiler flags
+CXXFLAG_OPTI=-O3 -D_FAST_CORRELATION
+CXXFLAG_WARN=-Wall -Wextra -Wno-sign-compare
+
+#linker flags
+LDFLAG_OPTI=-O3
+
+#includes
+INC_BASE=-Isrc -I$(PATH_TABX) -I$(PATH_EIGN)
+INC_MATH=-I/home/popgen/delaneau/SOFT/R-3.2.1/src/include/
+INC_BOOST=-I/home/popgen/delaneau/SOFT/boost/boost_1_57_0/
+
+#libraries
+LIB_BASE=-Wl,-Bstatic -lz -lblas -lbz2 -Wl,-Bdynamic -lm -lgsl -lgslcblas
+LIB_TABX=$(PATH_TABX)/libtabix.a
+LIB_RMATH=/home/popgen/delaneau/SOFT/R-3.2.1/src/nmath/standalone/libRmath.a
+LIB_BPO=/home/popgen/delaneau/SOFT/boost/boost_1_57_0/bin.v2/libs/program_options/build/gcc-4.1.2/release/link-static/threading-multi/libboost_program_options.a
+LIB_BIO=/home/popgen/delaneau/SOFT/boost/boost_1_57_0/bin.v2/libs/iostreams/build/gcc-4.1.2/release/link-static/threading-multi/libboost_iostreams.a
+
+#files (binary, objects, headers & sources)
+FILE_BIN=bin/fastQTL
+FILE_O=$(shell for file in `find src -name *.cpp`; do echo obj/$$(basename $$file .cpp).o; done)
+FILE_H=$(shell find src -name *.h)
+FILE_CPP=$(shell find src -name *.cpp)
+
+#default
+all: linux
+
+#linux release
+linux: CXXFLAG=$(CXXFLAG_OPTI) $(CXXFLAG_WARN)
+linux: IFLAG=$(INC_BASE) $(INC_MATH) $(INC_BOOST)
+linux: LIB=$(LIB_RMATH) $(LIB_BPO) $(LIB_BIO) $(LIB_TABX) $(LIB_BASE)
+linux: LDFLAG=$(LDFLAG_OPTI)  
+linux: $(FILE_BIN)
+
+#compilation
+$(LIB_TABX):
+	cd $(PATH_TABX) && make && cd ../..
+
+$(FILE_BIN): $(FILE_O) $(LIB_TABX)
+	$(CXX) $(LDFLAG) $^ $(LIB) -o $@
+
+obj/%.o: %.cpp $(FILE_H)
+	$(CXX) $(CXXFLAG) -o $@ -c $< $(IFLAG)
+
+clean: 
+	rm -f obj/*.o $(FILE_BIN)
+	
+cleanall: clean 
+	cd $(PATH_TABX) && make clean && cd ../..	

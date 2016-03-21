@@ -1,0 +1,247 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=iso-8859-1"/>
+<meta http-equiv="Cache-Control" content="max-age=3600"/>
+<meta name="description" content="description"/>
+<meta name="keywords" content="keywords"/> 
+<meta name="author" content="author"/> 
+<link rel="stylesheet" type="text/css" href="../style/default.css" media="screen"/>
+<title>FastQTL</title>
+<script language="Javascript" src="../script/print_last_modif_date.js" ></script>
+</head>
+
+<body>
+<div class="content">
+	<div class="item">
+	<div class="options">
+		<h1><font size="6">fastqtl [options]</font></h1>
+		
+		<p>
+		Hereafter, the complete list of options for FastQTL in order to map cisQTL.
+		</p>
+		
+		<table width=100%>
+			<tr>
+				<th width=30%>Basic options</th>
+				<th width=70%>Description</th>
+			</tr>
+			<tr>
+				<td>
+				<b>--help</b><br>
+				-H				
+				</td>
+				<td>
+				Print help about options. 
+				</td>
+			</tr>
+			<tr>
+				<td>
+				<b>--version</b><br>
+				-V
+				</td>
+				<td>
+				Print the FastQTL binary version. 
+				</td>
+			</tr>
+		</table>
+		
+		<br>
+		<br>
+		<table width=100%>
+			<tr>
+				<th width=30%>Input file options</th>
+				<th width=70%>Description</th>
+			</tr>
+			
+			<tr>
+				<td>
+				<b>--vcf file.vcf</b><br>
+				-V file.vcf<br>
+				-V file.vcf.gz
+				</td>
+				<td>
+				Genotypes in VCF 4.1 format<br>
+				Field <b>DS</b> is used as default for dosages.<br>
+				If no DS field is present, FQTL derives dosages from the <b>GT</b> field.<br>
+				Brief description <a href="vcf.html" target='content'>here</a>.<br>
+				Detailed description <A href=http://vcftools.sourceforge.net/specs.html>here</A>.<br>
+				This file needs to be compressed with BGZIP and indexed with <A href=http://sourceforge.net/projects/samtools/files/tabix/>TABIX</A>.
+				</td>
+			</tr>
+		
+			<tr>
+				<td>
+				<b>--bed file.bed</b><br>
+				-B file.bed<br>
+				-B file.bed.gz
+				</td>
+				<td>
+				Phenotypes in UCSC BED extended format.<br>
+				Brief description <a href="bed.html" target='content'>here</a>.<br>
+				Detailed description <A href=http://genome.ucsc.edu/FAQ/FAQformat.html#format1>here</A>.
+				This file needs to be compressed with BGZIP and indexed with <A href=http://sourceforge.net/projects/samtools/files/tabix/>TABIX</A>.
+				</td>
+			</tr>
+		</table>
+		
+		<br>
+		<br>
+		<table width=100%>
+			<tr>
+				<th width=30%>Output file options</th>
+				<th width=70%>Description</th>
+			</tr>
+			
+			<tr>
+				<td>
+				<b>--out file.results</b><br>
+				-O file.results.gz<br>
+				</td>
+				<td>
+				Output file.
+				</td>
+			</tr>
+
+			<tr>
+				<td>
+				<b>--log file.log</b><br>
+				-L file.log<br>
+				</td>
+				<td>
+				Log file. It is basically a copy of the screen output. If this option is not provided, the software will generate one automatically with a UUID based filename. 
+				</td>
+			</tr>
+		</table>
+		
+		
+		<br>
+		<br>
+		<table width=100%>
+			<tr>
+				<th width=30%>Filtering options</th>
+				<th width=70%>Description</th>
+			</tr>
+	
+			<tr>
+				<td>
+				<b>--exclude-samples file.exc</b><br>
+				<b>--exclude-sites file.exc</b><br>
+				<b>--exclude-phenotypes file.exc</b><br>
+				<b>--exclude-covariates file.exc</b>
+				</td>
+				<td>
+				To specify files containing all samples, variants, phenotypes or covariates to be excluded from the analysis.
+				</td>
+			</tr>
+						
+			<tr>
+				<td>
+				<b>--include-samples file.exc</b><br>
+				<b>--include-sites file.exc</b><br>
+				<b>--include-phenotypes file.exc</b><br>
+				<b>--include-covariates file.exc</b>
+				</td>
+				<td>
+				To specify files containing all samples, variants, phenotypes or covariates to be included from the analysis.
+				</td>
+			</tr>
+		</table>
+		
+		<br>
+		<br>
+		<table width=100%>
+			<tr>
+				<th width=30%>Method parameters</th>
+				<th width=70%>Description</th>
+			</tr>
+
+			<tr>
+				<td>
+				<b>--normal</b><br>
+				</td>
+				<td>
+				To perform quantile normalization on the phenotype quantifications to make them normally distributed. 
+				Implemeted as the <i>rntransform</i> function of the GenABEL package. Can be found <A href=http://www.genabel.org/packages/GenABEL>here</A>.
+				</td>
+			</tr>
+			<tr>
+				<td>
+				<b>--window [float]</b><br>
+				</td>
+				<td>
+				Cis-window size. Default values is 1Mb (1e6).
+				It means that all variants within 1e6 bp of the phenotype location (e.g. TSS) is analyzed.
+				</td>
+			</tr>
+			<tr>
+				<td>
+				<b>--threshold [float]</b><br>
+				</td>
+				<td>
+				To filter out all phenotype-variant pairs with a p-value above the specified threshold in the output of a nominal pass.
+				</td>
+			</tr>
+			<tr>
+				<td>
+				<b>--permute [int]</b><br>
+				<b>--permute [int] [int]</b><br>
+				</td>
+				<td>
+				Perform permutations and report only best candidate QTL per MP. When one argument (=X) is given, a fixed number of permutations (=x) is performed. 
+				When two arguments are given (=X1 and X2), the adaptive permutation scheme is used and between X1 and X2 permutations are performed depending on the significance of the tested MP.   
+				</td>
+			</tr>
+			<tr>
+				<td>
+				<b>--seed</b><br>
+				</td>
+				<td>
+				Random number generator seed. Useful to replicate runs of the software.
+				</td>
+			</tr>
+		</table>
+		
+		<br>
+		<br>
+		<table width=100%>
+			<tr>
+				<th width=30%>Parallelization</th>
+				<th width=70%>Description</th>
+			</tr>
+			<tr>
+				<td>
+				<b>--region chr:start-end</b><br>
+				-R 12:1000000-2000000
+				</td>
+				<td>
+				Define a chunk of molecular phenotypes to be processed.
+				Genotype data is automatically extracted given the phenotype region and the cis-window size.  
+				</td>
+			</tr>
+			<tr>
+				<td>
+				<b>--chunk [int] [int]</b>
+				</td>
+				<td>
+				Specify which chunk of data needs to be processed. Needs two arguments (=X1, X2). Tells to FastQTL to process chunk X1 out of X2 chunks.
+				</td>
+			</tr>
+			
+			<tr>
+				<td>
+				<b>--commands [int] file.commands</b>
+				</td>
+				<td>
+				Split the whole analysis in X jobs (first argument) and write the resulting X commands in <i>file.commands</i>.
+				</td>
+			</tr>
+		
+		</table>
+		
+		</div>
+	</div>
+	
+	<div class="log"><script type="text/javascript"> print_last_modif_date("$Date: 2015-01-22 00:08:17 +0100 (Thu, 22 Jan 2015) $"); </script></div>
+</div>
+</body>
+</html>
