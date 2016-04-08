@@ -112,7 +112,7 @@ public:
 	//GENERAL MANAGMENT
 	void clusterizePhenotypes(int);
 	void imputeGenotypes();
-    void imputePhenotypes();
+	void imputePhenotypes();
 	void normalTranformPhenotypes();
 	void initResidualizer();
 	void rankTranformPhenotypes();
@@ -126,6 +126,8 @@ public:
 	//COMPUTATION METHODS [ALL INLINES FOR SPEED]
 	double getCorrelation(vector < float > &, vector < float > &);
 	double getCorrelation(vector < float > &, vector < float > &, vector < int > &);
+	double getTstat2(double, double);
+	double getPvalueFromTstat2(double, double);
 	double getPvalue(double, double);
 	double getPvalue(double, vector < double > &);
 	double getSlope(double, double, double);
@@ -190,6 +192,14 @@ inline double data::getCorrelation(vector < float > & vec1, vector < float > & v
 	double corr = 0.0;
 	for (int s = 0 ; s < sample_count ; s ++) corr += vec1[indexes[s]] * vec2[indexes[s]];
 	return corr;
+}
+
+inline double data::getTstat2(double corr, double df) {
+    return df * corr * corr / (1 - corr * corr);
+}
+
+inline double data::getPvalueFromTstat2(double tstat2, double df) {
+    return pf(tstat2, 1, df, 0, 0);
 }
 
 inline double data::getPvalue(double corr, double df) {

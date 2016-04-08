@@ -93,7 +93,7 @@ void data::runPermutation(string fout, vector < int > nPermutations) {
 		vector < double > permPvalues;
 		double true_df = sample_count - 2 - ((covariate_count>0)?covariate_engine->nCovariates():0);
 		double mean = 0.0, variance = 0.0, beta_shape1 = 1.0, beta_shape2 = 1.0;
-		fdo << phenotype_id[p] << " " << targetGenotypes.size();
+		fdo << phenotype_id[p] << "\t" << targetGenotypes.size();
 		if (targetGenotypes.size() > 0) {
 			//Estimate number of degrees of freedom
 			if (putils::variance(permCorr, putils::mean(permCorr)) != 0.0) {
@@ -113,21 +113,25 @@ void data::runPermutation(string fout, vector < int > nPermutations) {
 				if (targetGenotypes.size() > 10) mleBeta(permPvalues, beta_shape1, beta_shape2);	//ML estimate if more than 10 variant in cis
 			}
 			LOG.println("  * Beta distribution parameters = " + sutils::double2str(beta_shape1, 4) + " " + sutils::double2str(beta_shape2, 4));
-			fdo << " " << beta_shape1 << " " << beta_shape2 << " " << true_df;
-		} else fdo << " NA NA NA";
+			fdo << "\t" << beta_shape1 << "\t" << beta_shape2 << "\t" << true_df;
+		} else fdo << "\tNA\tNA\tNA";
 
 		//1.6. Writing results
 		if (targetGenotypes.size() > 0 && bestIndex >= 0) {
 			double pval_fdo = getPvalue(bestCorr, true_df);
-			double pval_nom = getPvalue(bestCorr, sample_count - 2 - ((covariate_count>0)?covariate_engine->nCovariates():0));
+			double df = sample_count - 2 - ((covariate_count>0)?covariate_engine->nCovariates():0);
+			double tstat2 = getTstat2(bestCorr, df);
+			double pval_nom = getPvalueFromTstat2(tstat2, df);
 			double pval_slope = getSlope(bestCorr, phenotype_sd[p], genotype_sd[bestIndex]);
-			fdo << " " << genotype_id[bestIndex];
-			fdo << " " << bestDistance;
-			fdo << " " << pval_nom;
-			fdo << " " << pval_slope;
-			fdo << " " << (nBetterCorrelation + 1) * 1.0 / (countPermutations + 1.0);
-			fdo << " " << pbeta(pval_fdo, beta_shape1, beta_shape2, 1, 0);
-		} else fdo << " NA NA NA NA NA NA";
+			double slope_se = abs(pval_slope) / sqrt(tstat2);
+			fdo << "\t" << genotype_id[bestIndex];
+			fdo << "\t" << bestDistance;
+			fdo << "\t" << pval_nom;
+			fdo << "\t" << pval_slope;
+			fdo << "\t" << slope_se;
+			fdo << "\t" << (nBetterCorrelation + 1) * 1.0 / (countPermutations + 1.0);
+			fdo << "\t" << pbeta(pval_fdo, beta_shape1, beta_shape2, 1, 0);
+		} else fdo << "\tNA\tNA\tNA\tNA\tNA\tNA\tNA";
 		fdo << endl;
 
 		LOG.println("  * Progress = " + sutils::double2str((p+1) * 100.0 / phenotype_count, 1) + "%");

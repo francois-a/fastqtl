@@ -35,33 +35,34 @@ void data::readCovariates(string fcov) {
 	if (buffer.size() == 0) LOG.error("No header line detected!");
 	sutils::tokenize(buffer, str, "\t");
 	for (int t = 1 ; t < str.size() ; t ++) {
-		if (checkSample(str[t], false)) {
+		string istr = sutils::remove_spaces(str[t]);
+		if (checkSample(istr, false)) {
 			int idx_sample = -1;
-			for (int i = 0 ; i < sample_count && idx_sample < 0 ; i++) if (sample_id[i] == sutils::remove_spaces(str[t])) idx_sample = i;
+			for (int i = 0 ; i < sample_count && idx_sample < 0 ; i++) if (sample_id[i] == istr) idx_sample = i;
 			mappingS.push_back(idx_sample);
 			if (idx_sample >= 0) n_includedS ++;
 			else n_missingS ++;
-        } else {
-            mappingS.push_back(-1);
-            n_excludedS ++;
-        }
+		} else {
+			mappingS.push_back(-1);
+			n_excludedS ++;
+		}
 	}
 	if (n_includedS != sample_count) LOG.error("Number of overlapping samples in covariate file is " + sutils::int2str(n_includedS) + " and should be " + sutils::int2str(sample_count));
 
 	//Read covariates
 	//int n_type0 = 0, n_type1 = 0;
 	while(getline(fd, buffer)) {
-        if (buffer.size() == 0) continue;
+		if (buffer.size() == 0) continue;
 		sutils::tokenize(buffer, str, "\t");
 		if (str.size() < 2) LOG.error("Wrong genotype covariate file format");
 		if (checkCovariate(str[0])) {
 			covariate_val.push_back(vector < string > (sample_count, "0"));
 			for (int t = 1 ; t < str.size() ; t ++) {
 				if (mappingS[t-1] >= 0) {
-                    covariate_val.back()[mappingS[t-1]] = str[t];
+					covariate_val.back()[mappingS[t-1]] = sutils::remove_spaces(str[t]);
 				}
 			}
-            n_includedC ++;
+			n_includedC ++;
 		} else n_excludedC ++;
 	}
 

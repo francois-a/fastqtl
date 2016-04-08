@@ -1,5 +1,5 @@
 #PLEASE SPECIFY THE R path here where you built the R math library standalone 
-RMATH=~/Software/R-3.1.3/src
+RMATH=../../R-3.2.4/src
 
 #compiler
 CXX=g++
@@ -27,7 +27,7 @@ INC_MACX=-I/usr/local/include/
 
 #libraries
 #LIB_BASE=-lm -lboost_iostreams -lboost_program_options -lz -lgsl -lblas
-LIB_BASE=-lm -lz -lboost_iostreams -lboost_program_options -lgsl -lblas
+LIB_BASE=-lm -lz -lbz2 -lboost_iostreams -lboost_program_options -lgslcblas -lgsl -lblas
 LIB_MATH=$(RMATH)/nmath/standalone/libRmath.a
 LIB_TABX=$(PATH_TABX)/libtabix.a
 LIB_MACX=-L/usr/local/lib/

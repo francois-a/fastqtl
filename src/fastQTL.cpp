@@ -93,7 +93,7 @@ int main(int argc, char ** argv) {
 		cout << "  * Authors : Olivier DELANEAU, Halit ONGEN, Alfonso BUIL & Manolis DERMITZAKIS" << endl;
 		cout << "  * Contact : olivier.delaneau@gmail.com" << endl;
 		cout << "  * Webpage : http://fastqtl.sourceforge.net/" << endl;
-		cout << "  * Version : v2.0" << endl;
+		cout << "  * Version : v2.184_gtex" << endl;
 		if (options.count("help")) { cout << descriptions<< endl; exit(1); }
 	}
 
