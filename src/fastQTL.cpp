@@ -53,7 +53,9 @@ int main(int argc, char ** argv) {
 	opt_parameters.add_options()
 		("normal", "Normal transform the phenotypes.")
 		("window,W", bpo::value< double >()->default_value(1e6), "Cis-window size.")
-		("threshold, T", bpo::value< double >()->default_value(1.0), "P-value threshold used in nominal pass of association");
+		("threshold,T", bpo::value< double >()->default_value(1.0), "P-value threshold used in nominal pass of association")
+		("maf-threshold", bpo::value< double >()->default_value(0.0), "Minor allele frequency threshold used when parsing genotypes")
+		("ma-sample-threshold", bpo::value< int >()->default_value(0), "Minimum number of samples carrying the minor allele; used when parsing genotypes");
 
 	bpo::options_description opt_modes ("\33[33mModes\33[0m");
 	opt_modes.add_options()
@@ -201,6 +203,14 @@ int main(int argc, char ** argv) {
 	if (options["window"].as < double > () > 1e9) LOG.error ("Cis-window cannot be larger than 1e9bp");
 	LOG.println("  * Considering variants within " + sutils::double2str(options["window"].as < double > ()) + " bp of the MPs");
 	D.cis_window = options["window"].as < double > ();
+	
+	D.maf_threshold = options["maf-threshold"].as < double > ();
+	if (D.maf_threshold < 0.0 || D.maf_threshold >= 0.5) LOG.error("Incorrect --maf-threshold value  :  0 <= X < 0.5");
+	LOG.println("  * Using minor allele frequency threshold = " + sutils::double2str(D.maf_threshold, 4));
+	
+	D.ma_sample_threshold = options["ma-sample-threshold"].as < int > ();
+	if (D.ma_sample_threshold < 0) LOG.error("Incorrect --ma-sample-threshold  :  0 <= X");
+	LOG.println("  * Using minor allele sample threshold = " + sutils::int2str(D.ma_sample_threshold));	
 
 	if (options.count("chunk")) {
 		vector < int > nChunk = options["chunk"].as < vector < int > > ();
