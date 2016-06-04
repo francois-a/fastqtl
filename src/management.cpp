@@ -103,16 +103,19 @@ void data::clusterizePhenotypes(int K) {
 			max_idx = -1;
 			max_val = +1;
 			max_mid = -1;
+			// find largest cluster
 			for (int k = 0 ; k < phenotype_cluster.size() ; k ++) {
 				if (phenotype_cluster[k].size() > max_val) {
 					max_val = phenotype_cluster[k].size();
 					max_idx = k;
 				}
 			}
+			// split in two
 			if (max_idx >= 0) {
 				max_mid = max_val / 2;
 				while (max_mid > 1 && phenotype_end[phenotype_cluster[max_idx][max_mid-1]] >= phenotype_start[phenotype_cluster[max_idx][max_mid]]) max_mid --;
-				phenotype_cluster.push_back(vector < int > (phenotype_cluster[max_idx].begin() + max_mid, phenotype_cluster[max_idx].end()));
+				vector < vector < int > >::iterator it = phenotype_cluster.begin();
+				phenotype_cluster.insert(it+max_idx+1, vector < int > (phenotype_cluster[max_idx].begin() + max_mid, phenotype_cluster[max_idx].end()));
 				phenotype_cluster[max_idx].erase(phenotype_cluster[max_idx].begin() + max_mid, phenotype_cluster[max_idx].end());
 			}
 		} while (phenotype_cluster.size() < K && max_idx >= 0);
