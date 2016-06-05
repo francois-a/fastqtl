@@ -38,6 +38,10 @@ void data::clear() {
 	genotype_chr.clear();
 	genotype_id.clear();
 	genotype_pos.clear();
+	genotype_maf.clear();
+	genotype_ma_count.clear();
+	genotype_ma_samples.clear();
+	genotype_ref_factor.clear();
 	phenotype_count = 0;
 	phenotype_orig.clear();
 	phenotype_id.clear();

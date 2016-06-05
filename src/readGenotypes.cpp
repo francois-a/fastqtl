@@ -98,55 +98,55 @@ void data::readGenotypesVCF(string fvcf) {
 				// calculate minor allele frequency
 				// for now, replicate previous approach
 				// in the future, use alt_alleles = sum(dosages)
-				if (maf_threshold>0.0 || ma_sample_threshold>0) {
-					int c0 = 0;
-					int c1 = 0;
-					int c2 = 0;
-					int r;
-					for (int i=0; i<genotype_vec.size(); ++i) {
-						if (genotype_vec[i]!=-1.0) {
-							r = round(genotype_vec[i]);
-							if (r==0) {
-								c0++;
-							} else if (r==1) {
-								c1++;
-							} else if (r==2) {
-								c2++;
-							} else {
-								LOG.error("Dosage values must be between 0 and 2");
-							}
+				int c0 = 0;
+				int c1 = 0;
+				int c2 = 0;
+				int r;
+				for (int i=0; i<genotype_vec.size(); ++i) {
+					if (genotype_vec[i]!=-1.0) {
+						r = round(genotype_vec[i]);
+						if (r==0) {
+							c0++;
+						} else if (r==1) {
+							c1++;
+						} else if (r==2) {
+							c2++;
+						} else {
+							LOG.error("Dosage values must be between 0 and 2");
 						}
 					}
-					float ref_alleles = 2*c0 + c1;
-					float alt_alleles = c1 + 2*c2;
-					float maf;
-					int ma_samples;
-					int num_samples = c0+c1+c2;
-					if (ref_alleles >= alt_alleles) {
-						maf = alt_alleles / (float)(2*num_samples);
-						ma_samples = c1+c2;
-					} else {
-						maf = ref_alleles / (float)(2*num_samples);
-						ma_samples = c0+c1;
-					}
-					
-					if (maf>=maf_threshold && ma_samples>=ma_sample_threshold) {
-						genotype_id.push_back(str[2]);
-						genotype_chr.push_back(str[0]);
-						genotype_pos.push_back(atoi(str[1].c_str()));
-						genotype_orig.push_back(genotype_vec);
-						genotype_curr.push_back(vector < float > (sample_count, 0.0));
-						n_includedG ++;
-					} else {
-						n_excludedMAF++;
-					}
+				}
+				float ref_alleles = 2*c0 + c1;
+				float alt_alleles = c1 + 2*c2;
+				float maf;
+				int ma_samples;
+				int ma_count;
+				int num_samples = c0+c1+c2;
+				int ref_factor;
+				if (ref_alleles >= alt_alleles) {
+					maf = alt_alleles / (float)(2*num_samples);
+					ma_samples = c1+c2;
+					ma_count = alt_alleles;
+					ref_factor = 1;
 				} else {
+					maf = ref_alleles / (float)(2*num_samples);
+					ma_samples = c0+c1;
+					ma_count = ref_alleles;
+					ref_factor = -1;
+				}
+				if (maf>=maf_threshold && ma_samples>=ma_sample_threshold) {
 					genotype_id.push_back(str[2]);
 					genotype_chr.push_back(str[0]);
 					genotype_pos.push_back(atoi(str[1].c_str()));
 					genotype_orig.push_back(genotype_vec);
 					genotype_curr.push_back(vector < float > (sample_count, 0.0));
-					n_includedG ++;
+					genotype_maf.push_back(maf);
+					genotype_ma_count.push_back(ma_count);
+					genotype_ma_samples.push_back(ma_samples);
+					genotype_ref_factor.push_back(ref_factor);
+					n_includedG++;
+				} else {
+					n_excludedMAF++;
 				}
 			} else n_excludedF ++;
 		} else n_excludedG ++;

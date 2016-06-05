@@ -29,7 +29,7 @@
 
 class data {
 public:
-    //INCLUDE/EXCLUDE LISTS
+	//INCLUDE/EXCLUDE LISTS
 	set < string > sample_inclusion;
 	set < string > sample_exclusion;
 	set < string > genotype_inclusion;
@@ -57,12 +57,16 @@ public:
 	vector < string > genotype_chr;						//variant site chromosome
 	vector < string > genotype_id;						//variant site IDs
 	vector < int > genotype_pos;						//variant site positions
+	vector < float > genotype_maf;						//variant minor allele frequency
+	vector < int > genotype_ma_count;					//variant minor allele count
+	vector < int > genotype_ma_samples;					//variant minor allele samples
+	vector < int > genotype_ref_factor;					//variant minor allele reference factor: 1 if ALT is MA; -1 if REF is MA
 
 	//PHENOTYPES
 	int phenotype_count;								//phenotype number
 	vector < vector < float > > phenotype_orig;			//original phenotype values
 	vector < string > phenotype_id;						//phenotype ids
-	vector < string > phenotype_grp;						//phenotype groups
+	vector < string > phenotype_grp;					//phenotype groups
 	vector < string > phenotype_chr;					//phenotype chromosomes
 	vector < int > phenotype_start;						//phenotype start positions
 	vector < int > phenotype_end;						//phenotype end positions
@@ -197,11 +201,11 @@ inline double data::getCorrelation(vector < float > & vec1, vector < float > & v
 }
 
 inline double data::getTstat2(double corr, double df) {
-    return df * corr * corr / (1 - corr * corr);
+	return df * corr * corr / (1 - corr * corr);
 }
 
 inline double data::getPvalueFromTstat2(double tstat2, double df) {
-    return pf(tstat2, 1, df, 0, 0);
+	return pf(tstat2, 1, df, 0, 0);
 }
 
 inline double data::getPvalue(double corr, double df) {

@@ -5,6 +5,7 @@ This repository contains a modified version of the [FastQTL](http://fastqtl.sour
 1. Options for filtering by minor allele frequency and minor allele sample count
 2. Python wrapper for multi-threaded execution
 3. Calculation of q-values (Storey) for FDR estimation (requires R)
+4. Minor allele information reported in output
 
 For documentation and the original version, see: http://fastqtl.sourceforge.net/
 

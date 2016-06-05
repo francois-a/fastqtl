@@ -126,12 +126,16 @@ void data::runPermutation(string fout, vector < int > nPermutations) {
 			double slope_se = abs(pval_slope) / sqrt(tstat2);
 			fdo << "\t" << genotype_id[bestIndex];
 			fdo << "\t" << bestDistance;
+			fdo << "\t" << genotype_ma_samples[bestIndex];
+			fdo << "\t" << genotype_ma_count[bestIndex];
+			fdo << "\t" << genotype_maf[bestIndex];
+			fdo << "\t" << genotype_ref_factor[bestIndex];
 			fdo << "\t" << pval_nom;
 			fdo << "\t" << pval_slope;
 			fdo << "\t" << slope_se;
 			fdo << "\t" << (nBetterCorrelation + 1) * 1.0 / (countPermutations + 1.0);
 			fdo << "\t" << pbeta(pval_fdo, beta_shape1, beta_shape2, 1, 0);
-		} else fdo << "\tNA\tNA\tNA\tNA\tNA\tNA\tNA";
+		} else fdo << "\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA";
 		fdo << endl;
 
 		LOG.println("  * Progress = " + sutils::double2str((p+1) * 100.0 / phenotype_count, 1) + "%");
