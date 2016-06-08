@@ -80,11 +80,11 @@ if args.permute:
 else:
     # merge chunks
     print('Merging chunks ... ', end='', flush=True)
-    with gzip.open('header.txt.gz', 'wb') as f:
+    with gzip.open('header_chunk.txt.gz', 'wb') as f:
         f.write(b'gene_id\tvariant_id\ttss_distance\tpval_nominal\tslope\tslope_se\n')
     cmd = 'zcat header_chunk.txt.gz '+args.prefix+'_chunk*.txt.gz | gzip -c -1 > '+args.prefix+'.txt.gz && rm '+args.prefix+'_chunk*.txt.gz'
     subprocess.check_call(cmd, shell=True, executable='/bin/bash')
-    os.remove('header.txt.gz')
+    os.remove('header_chunk.txt.gz')
     cmd = 'cat '+args.prefix+'_chunk*.log > '+args.prefix+'.allpairs.log && rm '+args.prefix+'_chunk*.log'
     subprocess.check_call(cmd, shell=True, executable='/bin/bash')
     print('done.', flush=True)
