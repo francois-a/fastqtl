@@ -23,5 +23,5 @@ else:
     cmd += ' | sort -n -k1,1 -k2,2 | bgzip -c > '+file_name
 
 subprocess.check_call(cmd, shell=True, executable='/bin/bash')
-subprocess.call('tabix -f -b 2 -e 2 '+file_name, shell=True, executable='/bin/bash')
+subprocess.check_call('tabix -f -b 2 -e 2 '+file_name, shell=True, executable='/bin/bash')
 print('done.')
