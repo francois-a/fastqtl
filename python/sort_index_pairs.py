@@ -16,7 +16,7 @@ file_base = os.path.split(args.fastqtl_pairs_file)[1].split('.txt.gz')[0]
 file_name = os.path.join(args.output_dir, file_base+'.sorted.txt.gz')
 
 cmd = 'cat <(echo -e "#chr\tpos\tvariant_id\tgene_id\ttss_distance\tpval_nominal\tslope\tslope_se") \
-    <(zcat testNominal.allpairs.txt.gz | tail -n+2 | awk \'{print $2,$1,$3,$4,$5,$6}\' OFS="\t" | awk -F"_" \'{print $1"\t"$2"\t"$0}\')'
+    <(zcat '+args.input_file+' | tail -n+2 | awk \'{print $2,$1,$3,$4,$5,$6}\' OFS="\t" | awk -F"_" \'{print $1"\t"$2"\t"$0}\')'
 if args.tmp_dir:
     cmd += ' | sort -T '+args.tmp_dir+' -n -k1,1 -k2,2 | bgzip -c > '+file_name
 else:
