@@ -63,7 +63,8 @@ int main(int argc, char ** argv) {
 		("psequence", bpo::value< string >(), "Permutation sequence.")
 		("map", bpo::value< string >(), "Map best QTL candidates per molecular phenotype.")
 		("map-full", "Scan full cis-window to discover independent signals.")
-		("interaction", bpo::value< string >(), "Test for interactions with variable specified in file.");
+		("interaction", bpo::value< string >(), "Test for interactions with variable specified in file.")
+		("report-best-only", bpo::bool_switch()->default_value(false), "Report best variant only (nominal mode)");
 
 	bpo::options_description opt_parallel ("\33[33mParallelization\33[0m");
 	opt_parallel.add_options()
@@ -283,10 +284,13 @@ int main(int argc, char ** argv) {
 		else if (options.count("permute")) {
 			if (options.count("psequence")) D.runPermutation(options["out"].as < string > (), options["psequence"].as < string > ());
 			else D.runPermutation(options["out"].as < string > (), options["permute"].as < vector < int > > ());
-		} else if (options.count("map"))
+		} else if (options.count("map")) {
 			D.runMapping(options["out"].as < string > (), options.count("map-full"));
-		else
+		} else if (options["report-best-only"].as<bool>()) {
+			D.runNominalBest(options["out"].as < string > ());
+		} else {
 			D.runNominal(options["out"].as < string > (), options["threshold"].as < double > ());
+		}
 	}
 
 	//----------------

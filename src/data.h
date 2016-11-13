@@ -140,6 +140,7 @@ public:
 
 	//ANALYSIS
 	void runNominal(string, double);
+	void runNominalBest(string);
 	void runPermutation(string, vector < int >);
 	void runPermutation(string, string);
 	void runPermutationPerGroup(string, vector < int >);
