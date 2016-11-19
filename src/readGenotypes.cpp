@@ -27,6 +27,7 @@ void data::readGenotypesVCF(string fvcf) {
 	int n_includedS = 0;
 	int n_excludedS = 0;
 	int n_excludedMAF = 0;
+	int n_excludedMAFglobal = 0;
 	int n_missingS = 0;
 	int n_parsed = 0;
 	vector < int > mappingS;
@@ -65,91 +66,110 @@ void data::readGenotypesVCF(string fvcf) {
 			//Check VCF format
 			bool gt_field = false;
 			int idx_field = -1;
-			sutils::tokenize(str[8], field, ":");
-			for (int f = 0 ; f < field.size() ; f ++) if (field[f] == "DS") idx_field = f;
+			sutils::tokenize(str[8], field, ":");  // FORMAT field
+			for (int f = 0 ; f < field.size() ; f ++) if (field[f] == "DS") idx_field = f;  // check if DS present, else use GT
 			if (idx_field < 0) { for (int f = 0 ; f < field.size() ; f ++) if (field[f] == "GT") idx_field = f; gt_field = true; }
+
+			bool passed_AF = true;
+			if (global_af_threshold>0.0) {
+				// apply AF filter
+				sutils::tokenize(str[7], field, ";");  // INFO field
+				for (int f=0; f<field.size(); ++f) {
+					size_t p = field[f].find("=");
+					if (field[f].substr(0, p)=="AF") {
+						double val = std::stod(field[f].substr(p+1, string::npos));
+						if ((val<global_af_threshold) | (val>1.0-global_af_threshold)) {
+							passed_AF = false;
+						}
+						break;
+					}
+				}
+			}
+
 			//Read data is format is correct
 			if (idx_field >= 0) {
-				vector < float > genotype_vec = vector < float > (sample_count, 0.0);
+				if (passed_AF) {
+					vector < float > genotype_vec = vector < float > (sample_count, 0.0);
 
-				for (int t = 9 ; t < str.size() ; t ++) {
-					if (mappingS[t-9] >= 0) {  // if sample is in include list
-						sutils::tokenize(str[t], field, ":");
-						if (str[t] == "." || str[t] == "NN" || str[t] == "NA") genotype_vec[mappingS[t-9]] = -1.0;
-						else if (!gt_field) {
-							if (field[idx_field][0] == '.') genotype_vec[mappingS[t-9]] = -1.0;
-							else {
-								float dosage = atof(field[idx_field].c_str());
-								//if (dosage < 0 || dosage > 2) LOG.error("Dosages must be between 0 and 2, check: " + field[idx_field]);
-								genotype_vec[mappingS[t-9]] = dosage;
-							}
-						} else {
-							if (field[idx_field][0] == '.' || field[idx_field][2] == '.') genotype_vec[mappingS[t-9]] = -1.0;
-							else {
-								int a0 = atoi(field[idx_field].substr(0, 1).c_str());
-								int a1 = atoi(field[idx_field].substr(2, 1).c_str());
-								int dosage = a0 + a1;
-								if (dosage < 0 || dosage > 2) LOG.error("Genotypes must be 00, 01, or 11, check: " + field[idx_field]);
-								genotype_vec[mappingS[t-9]] = dosage;
+					for (int t = 9 ; t < str.size() ; t ++) {
+						if (mappingS[t-9] >= 0) {  // if sample is in include list
+							sutils::tokenize(str[t], field, ":");
+							if (str[t] == "." || str[t] == "NN" || str[t] == "NA") genotype_vec[mappingS[t-9]] = -1.0;
+							else if (!gt_field) {
+								if (field[idx_field][0] == '.') genotype_vec[mappingS[t-9]] = -1.0;
+								else {
+									float dosage = atof(field[idx_field].c_str());
+									//if (dosage < 0 || dosage > 2) LOG.error("Dosages must be between 0 and 2, check: " + field[idx_field]);
+									genotype_vec[mappingS[t-9]] = dosage;
+								}
+							} else {
+								if (field[idx_field][0] == '.' || field[idx_field][2] == '.') genotype_vec[mappingS[t-9]] = -1.0;
+								else {
+									int a0 = atoi(field[idx_field].substr(0, 1).c_str());
+									int a1 = atoi(field[idx_field].substr(2, 1).c_str());
+									int dosage = a0 + a1;
+									if (dosage < 0 || dosage > 2) LOG.error("Genotypes must be 00, 01, or 11, check: " + field[idx_field]);
+									genotype_vec[mappingS[t-9]] = dosage;
+								}
 							}
 						}
 					}
-				}
-				// calculate minor allele frequency
-				// for now, replicate previous approach
-				// in the future, use alt_alleles = sum(dosages)
-				int c0 = 0;
-				int c1 = 0;
-				int c2 = 0;
-				int r;
-				for (int i=0; i<genotype_vec.size(); ++i) {
-					if (genotype_vec[i]!=-1.0) {
-						r = round(genotype_vec[i]);
-						if (r==0) {
-							c0++;
-						} else if (r==1) {
-							c1++;
-						} else if (r==2) {
-							c2++;
-						} else {
-							LOG.error("Dosage values must be between 0 and 2");
+					// calculate minor allele frequency
+					// for now, replicate previous approach
+					// in the future, use alt_alleles = sum(dosages)
+					int c0 = 0;
+					int c1 = 0;
+					int c2 = 0;
+					int r;
+					for (int i=0; i<genotype_vec.size(); ++i) {
+						if (genotype_vec[i]!=-1.0) {
+							r = round(genotype_vec[i]);
+							if (r==0) {
+								c0++;
+							} else if (r==1) {
+								c1++;
+							} else if (r==2) {
+								c2++;
+							} else {
+								LOG.error("Dosage values must be between 0 and 2");
+							}
 						}
 					}
-				}
-				float ref_alleles = 2*c0 + c1;
-				float alt_alleles = c1 + 2*c2;
-				float maf;
-				int ma_samples;
-				int ma_count;
-				int num_samples = c0+c1+c2;
-				int ref_factor;
-				if (ref_alleles >= alt_alleles) {
-					maf = alt_alleles / (float)(2*num_samples);
-					ma_samples = c1+c2;
-					ma_count = alt_alleles;
-					ref_factor = 1;
-				} else {
-					maf = ref_alleles / (float)(2*num_samples);
-					ma_samples = c0+c1;
-					ma_count = ref_alleles;
-					ref_factor = -1;
-				}
-				if (maf>=maf_threshold && ma_samples>=ma_sample_threshold) {
-					genotype_id.push_back(str[2]);
-					genotype_chr.push_back(str[0]);
-					genotype_pos.push_back(atoi(str[1].c_str()));
-					genotype_orig.push_back(genotype_vec);
-					genotype_curr.push_back(vector < float > (sample_count, 0.0));
-					genotype_maf.push_back(maf);
-					genotype_ma_count.push_back(ma_count);
-					genotype_ma_samples.push_back(ma_samples);
-					genotype_ref_factor.push_back(ref_factor);
-					n_includedG++;
-				} else {
-					n_excludedMAF++;
-				}
-			} else n_excludedF ++;
-		} else n_excludedG ++;
+					float ref_alleles = 2*c0 + c1;
+					float alt_alleles = c1 + 2*c2;
+					float maf;
+					int ma_samples;
+					int ma_count;
+					int num_samples = c0+c1+c2;
+					int ref_factor;
+					if (ref_alleles >= alt_alleles) {
+						maf = alt_alleles / (float)(2*num_samples);
+						ma_samples = c1+c2;
+						ma_count = alt_alleles;
+						ref_factor = 1;
+					} else {
+						maf = ref_alleles / (float)(2*num_samples);
+						ma_samples = c0+c1;
+						ma_count = ref_alleles;
+						ref_factor = -1;
+					}
+					if (maf>=maf_threshold && ma_samples>=ma_sample_threshold) {
+						genotype_id.push_back(str[2]);
+						genotype_chr.push_back(str[0]);
+						genotype_pos.push_back(atoi(str[1].c_str()));
+						genotype_orig.push_back(genotype_vec);
+						genotype_curr.push_back(vector < float > (sample_count, 0.0));
+						genotype_maf.push_back(maf);
+						genotype_ma_count.push_back(ma_count);
+						genotype_ma_samples.push_back(ma_samples);
+						genotype_ref_factor.push_back(ref_factor);
+						n_includedG++;
+					} else {
+						n_excludedMAF++;
+					}
+				} else n_excludedMAFglobal++;
+			} else n_excludedF++;
+		} else n_excludedG++;
 		n_parsed++;
 		if (n_parsed % 100000 == 0) LOG.println("  * " + sutils::int2str(n_parsed) + " lines parsed");
 	}
@@ -163,5 +183,7 @@ void data::readGenotypesVCF(string fvcf) {
 	LOG.println("  * " + sutils::int2str(n_includedG) + " sites included");
 	if (n_excludedG > 0) LOG.println("  * " + sutils::int2str(n_excludedG) + " sites excluded");
 	if (n_excludedF > 0) LOG.println("  * " + sutils::int2str(n_excludedF) + " sites excluded because of missing GT/DS field");
+	if (n_excludedMAF > 0) LOG.println("  * " + sutils::int2str(n_excludedMAF) + " sites excluded because below minor allele thresholds for selected samples");
+	if (n_excludedMAFglobal > 0) LOG.println("  * " + sutils::int2str(n_excludedMAFglobal) + " sites excluded because global minor allele frequency < " + sutils::double2str(global_af_threshold));
 	if (n_includedG <= 0) LOG.error("No genotypes in this region: " + regionPhenotype.str());
 }

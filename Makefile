@@ -2,7 +2,7 @@
 RMATH=../../R-3.2.4/src
 
 #compiler
-CXX=g++
+CXX=g++ -std=c++11
 
 #internal paths
 VPATH=$(shell for file in `find src -name *.cpp`; do echo $$(dirname $$file); done)
