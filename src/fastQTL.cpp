@@ -36,6 +36,7 @@ int main(int argc, char ** argv) {
 		("bed,B", bpo::value< string >(), "Phenotypes in BED format.")
 		("cov,C", bpo::value< string >(), "Covariates in TXT format.")
 		("grp,G", bpo::value< string >(), "Phenotype groups in TXT format.")
+		("mtx,M", bpo::value< string >(), "Output folder for matrices.")
 		("out,O", bpo::value< string >(), "Output file.");
 
 	bpo::options_description opt_exclusion ("\33[33mExclusion/Inclusion files\33[0m");
@@ -129,6 +130,8 @@ int main(int argc, char ** argv) {
 
 	int nMode = options.count("permute") + options.count("map");
 	if (nMode > 1) LOG.error("Please, specify only one of these options [--permute, --map]");
+
+	if (options.count("mtx"))  LOG.println("\n *** cis-eQTL matrices will be written to folder ["+options["mtx"].as <string> () +"]\n");
 
 	//---------------
 	// 6. CHECK FILES
@@ -293,6 +296,8 @@ int main(int argc, char ** argv) {
 			D.runMapping(options["out"].as < string > (), options.count("map-full"));
 		} else if (options["report-best-only"].as<bool>()) {
 			D.runNominalBest(options["out"].as < string > ());
+		} else if (options.count("mtx")) {
+			D.runNominalOutputMatrices(options["mtx"].as < string > (), options["out"].as < string > (), options["threshold"].as < double > ());
 		} else {
 			D.runNominal(options["out"].as < string > (), options["threshold"].as < double > ());
 		}

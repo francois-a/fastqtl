@@ -11,6 +11,17 @@ $PROG  --vcf $DIR/example/genotypes.vcf.gz \
                --window 1e6 \
                --ma-sample-threshold 10 \
                --maf-threshold 0.01 \
-               --permute 1000 \
-               --out $ODIR/fastqtl.permuted.txt.gz 
-               # --mtx $ODIR
+               --mtx $ODIR \
+               --out $ODIR/fastqtl.nonminal.txt.gz 
+
+echo ""
+echo ""
+echo "CHECK OUTPUT MATRICES:"
+echo ""
+for I in 0 1 2 3 4
+do
+    FNAME=$DIR/example/cis_eqtl_mtx/$I.txt
+    wc -l $FNAME 
+    head -n3 $FNAME | cut -f1-3
+    awk '{print NF}' $FNAME | sort -nu | tail -n 1
+done
