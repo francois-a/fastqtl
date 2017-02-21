@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser(description='Filter significant SNP-gene pairs 
 parser.add_argument('permutation_results', help='FastQTL output')
 parser.add_argument('fdr', type=np.double, help='False discovery rate (e.g., 0.05)')
 parser.add_argument('annotation_gtf', help='Annotation in GTF format')
-parser.add_argument('--snp_lookup', default='', help='Tab-delimited file with columns: Chr, Pos, VariantID, Ref_b37, Alt, RS_ID_dbSNP135_original_VCF, RS_ID_dbSNP142_CHG37p13, Num_alt_per_site')
+parser.add_argument('--snp_lookup', default='', help='Tab-delimited file with columns: chr, variant_pos, variant_id, ref, alt, num_alt_per_site, rs_id_dbSNP...')
 parser.add_argument('--nominal_results', default='', help='FastQTL output from nominal pass')
 parser.add_argument('--nominal_results_unnormalized', nargs=2, default='', help='FastQTL output file (nominal pass), and units')
 parser.add_argument('-o', '--output_dir', default='.', help='Output directory')
