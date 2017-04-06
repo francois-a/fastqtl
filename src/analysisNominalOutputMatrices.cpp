@@ -15,6 +15,7 @@
 //along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "data.h"
+#include "cnpy.h"
 
 void data::runNominalOutputMatrices(string dout, string fout, double threshold) {
 
@@ -30,6 +31,55 @@ void data::runNominalOutputMatrices(string dout, string fout, double threshold) 
 	for (int p = 0 ; p < phenotype_count ; p ++) phenotype_sd[p] = RunningStat(phenotype_orig[p]).StandardDeviation();
 	normalize(genotype_orig);
 	normalize(phenotype_orig);
+
+    //0. save the data
+	for (int p = 0 ; p < phenotype_count ; p ++) {
+
+		//0.1. Enumerate all genotype-phenotype pairs within cis-window
+		vector < int > targetGenotypes, targetDistances;
+		for (int g = 0 ; g < genotype_count ; g ++) {
+			int cisdistance = genotype_pos[g] - phenotype_start[p];
+			if (abs(cisdistance) <= cis_window) {
+				targetGenotypes.push_back(g);
+				targetDistances.push_back(cisdistance);
+			}
+		}
+
+		LOG.println("  * Number of variants in cis = " + sutils::int2str(targetGenotypes.size()));
+
+        //0.1 Save to the gene list 
+        //0.2 Save the responses for this gene
+        //0.3 Save the response names for this gene 
+
+        //0.1 Save the genotype data (X: design matrix) to file 
+        string x_out = dout+"/X_" + sutils::int2str(p) + ".npy";
+	    if (!futils::createFile(x_out)) LOG.error(x_out + " is impossible to create, check permissions");
+		LOG.println("  * Saving eQTL X matirx to [" + x_out + "]");
+        const unsigned int x_shape[] = {(int) sample_count,(int) targetGenotypes.size()};
+        float* x_data = new float[x_shape[0]*x_shape[1]];
+        for(unsigned i=0;i<x_shape[0];i++){
+            for(unsigned j=0;j<x_shape[1];j++){
+                x_data[i*x_shape[1]+j] = genotype_orig[targetGenotypes[j]][i];
+            }
+        }
+        cnpy::npy_save(x_out,x_data,x_shape,2,"w");
+        delete[] x_data;
+
+        //0.2. Save the data to file
+        // ofile gdo (gout);
+        // gdo << "SAMPLE_ID\t" << phenotype_id[p];
+		// for (int g = 0 ; g < targetGenotypes.size() ; g ++)  gdo << "\t" << genotype_id[targetGenotypes[g]];
+        // gdo << endl;
+        // for (int s = 0 ; s < sample_count; s ++) {
+        //     gdo << sample_id[s] << "\t" << sutils::double2str(phenotype_orig[p][s],10);
+        //     for (int g = 0 ; g < targetGenotypes.size() ; g ++)    
+        //         gdo << "\t" << sutils::double2str(genotype_orig[targetGenotypes[g]][s],10);
+        //     gdo << endl;
+        // }
+        // gdo.close();
+
+		LOG.println("  * Progress = " + sutils::double2str((p+1) * 100.0 / phenotype_count, 1) + "%");
+    }
 
 	//1. Loop over phenotypes
 	ofile fdo (fout);
@@ -66,27 +116,6 @@ void data::runNominalOutputMatrices(string dout, string fout, double threshold) 
 				fdo << endl;
 			}
 		}
-
-
-        //1.3 Ouptut folder to file
-        string gout = dout+"/" + sutils::double2str(p) +".txt";
-	    if (!futils::createFile(gout)) LOG.error(gout + " is impossible to create, check writing permissions");
-		LOG.println("  * Saving eQTL matirx to [" + gout + "]");
-
-        ofile gdo (gout);
-        // header
-        gdo << "SAMPLE_ID\t" << phenotype_id[p];
-		for (int g = 0 ; g < targetGenotypes.size() ; g ++)  gdo << "\t" << genotype_id[targetGenotypes[g]];
-        gdo << endl;
-        for (int s = 0 ; s < sample_count; s ++) {
-            gdo << sample_id[s] << "\t" << sutils::double2str(phenotype_orig[p][s],10);
-            for (int g = 0 ; g < targetGenotypes.size() ; g ++)    
-                gdo << "\t" << sutils::double2str(genotype_orig[targetGenotypes[g]][s],10);
-            gdo << endl;
-        }
-        gdo.close();
-
-		LOG.println("  * Progress = " + sutils::double2str((p+1) * 100.0 / phenotype_count, 1) + "%");
 	}
 	fdo.close();
 }
