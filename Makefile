@@ -1,6 +1,7 @@
 #PLEASE SPECIFY THE R path here where you built the R math library standalone 
 RMATH=/home/jjzhu/src/R-3.2.0/src
 CBOOST=/home/jjzhu/src/boost_1_58_0
+CNPY=/home/jjzhu/src/cnpy
 
 
 
@@ -25,14 +26,14 @@ LDFLAG_MACX=-mmacosx-version-min=10.7 -stdlib=libc++
 
 #includes
 # INC_BASE=-Isrc -I$(PATH_TABX) -I$(PATH_EIGN)
-INC_BASE=-Isrc -I$(PATH_TABX) -I$(PATH_EIGN) -I$(CBOOST)/include
+INC_BASE=-Isrc -I$(PATH_TABX) -I$(PATH_EIGN) -I$(CBOOST)/include -I$(CNPY)/include
 INC_MATH=-I$(RMATH)/include/
 INC_MACX=-I/usr/local/include/
 
 #libraries
 #LIB_BASE=-lm -lboost_iostreams -lboost_program_options -lz -lgsl -lblas
 #LIB_BASE=-lm -lz -lbz2 -lboost_iostreams -lboost_program_options -lgslcblas -lgsl -lblas
-LIB_BASE=-lm -lz -lboost_iostreams -lboost_program_options -lgsl -lgslcblas -L$(CBOOST)/lib
+LIB_BASE=-lm -lz -lboost_iostreams -lboost_program_options -lgsl -lgslcblas -lcnpy -L$(CBOOST)/lib -L$(CNPY)/lib 
 LIB_MATH=$(RMATH)/nmath/standalone/libRmath.a
 LIB_TABX=$(PATH_TABX)/libtabix.a
 LIB_MACX=-L/usr/local/lib/
