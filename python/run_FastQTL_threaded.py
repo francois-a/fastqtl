@@ -87,7 +87,7 @@ with cd(args.output_dir):
         cmd = 'cat '+args.prefix+'_chunk*.log > '+args.prefix+'.egenes.log && rm '+args.prefix+'_chunk*.log'
         subprocess.check_call(cmd, shell=True, executable='/bin/bash')
         print('done.', flush=True)
-    
+
         # calculate q-values (R script also adds header)
         print('Calculating q-values', flush=True)
         cmd = 'Rscript '+os.path.join(fastqtl_dir, 'R', 'calculateSignificanceFastQTL.R')\
@@ -97,13 +97,23 @@ with cd(args.output_dir):
     else:
         # merge chunks
         print('Merging chunks ... ', end='', flush=True)
-        with gzip.open('header_chunk.txt.gz', 'wb') as f:
-            f.write(b'gene_id\tvariant_id\ttss_distance\tpval_nominal\tslope\tslope_se\n')
+        with gzip.open('header_chunk.txt.gz', 'wb') as f:  # order from analysisNominal.cpp
+            f.write(('\t'.join([
+                'gene_id',
+                'variant_id',
+                'tss_distance',
+                'ma_samples',
+                'ma_count',
+                'maf',
+                'pval_nominal',
+                'slope',
+                'slope_se',
+            ])+'\n').encode('utf-8'))
         cmd = 'zcat header_chunk.txt.gz '+args.prefix+'_chunk*.txt.gz | gzip -c -1 > '+args.prefix+'.txt.gz && rm '+args.prefix+'_chunk*.txt.gz'
         subprocess.check_call(cmd, shell=True, executable='/bin/bash')
         os.remove('header_chunk.txt.gz')
         cmd = 'cat '+args.prefix+'_chunk*.log > '+args.prefix+'.allpairs.log && rm '+args.prefix+'_chunk*.log'
         subprocess.check_call(cmd, shell=True, executable='/bin/bash')
         print('done.', flush=True)
-    
+
         os.rename(args.prefix+'.txt.gz', args.prefix+'.allpairs.txt.gz')

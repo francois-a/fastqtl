@@ -13,16 +13,12 @@ outfile <- args[3]
 
 cat("Processing FastQTL output (", fastqtlOutput, "), with FDR=", fdr, "\n", sep="")
 
-# identify type of input (standard vs. interactions) based on number of columns
 # input files have no headers
 D <- read.table(fastqtlOutput, header=FALSE, stringsAsFactors=FALSE)
-if (dim(D)[2]==16) {
-    colnames(D) <- c('gene_id', 'num_var', 'beta_shape1', 'beta_shape2', 'true_df', 'variant_id', 'tss_distance',
+if (dim(D)[2]==17) {
+    colnames(D) <- c('gene_id', 'num_var', 'beta_shape1', 'beta_shape2', 'true_df', 'pval_true_df', 'variant_id', 'tss_distance',
         'minor_allele_samples', 'minor_allele_count', 'maf', 'ref_factor',
         'pval_nominal', 'slope', 'slope_se', 'pval_perm', 'pval_beta')
-} else if (dim(D)[2]==17) {  # interaction results
-    colnames(D) <- c('gene_id', 'variant_id', 'tss_distance', 'pval1', 'b1', 'b1_se', 'pval2', 'b2', 'b2_se', 'pval3', 'b3', 'b3_se',
-        'beta_shape1', 'beta_shape2', 'true_df', 'pval_perm', 'pval_beta')
 } else {
     stop("FastQTL output in unrecognized format (mismatched number of columns).")
 }
