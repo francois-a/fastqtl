@@ -21,7 +21,7 @@ parser.add_argument('log_list', help='List of chunks')
 parser.add_argument('prefix', help='Prefix for output file name')
 parser.add_argument('--permute', action='store_true')
 parser.add_argument('--fdr', default=0.05, type=np.double)
-parser.add_argument('--lambda', default=None, help='lambda parameter for pi0est in qvalue.')
+parser.add_argument('--lambda_qvalue', default=None, help='lambda parameter for pi0est in qvalue.')
 parser.add_argument('-o', '--output_dir', default='.', help='Output directory')
 args = parser.parse_args()
 fastqtl_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
@@ -43,8 +43,8 @@ with cd(args.output_dir):
         print('Calculating q-values', flush=True)
         cmd = 'Rscript '+os.path.join(fastqtl_dir, 'R', 'calculateSignificanceFastQTL.R')\
             +' '+args.prefix+'.txt.gz '+str(args.fdr)+' '+args.prefix+'.egenes.txt.gz'
-        if args.lambda is not None:
-            cmd += ' --lambda '+args.lambda
+        if args.lambda_qvalue is not None:
+            cmd += ' --lambda '+args.lambda_qvalue
         subprocess.check_call(cmd, shell=True, executable='/bin/bash')
         os.remove(args.prefix+'.txt.gz')
     else:
