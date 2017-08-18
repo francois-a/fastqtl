@@ -61,6 +61,7 @@ parser.add_argument('--ma_sample_threshold', default='0', help='Include only gen
 parser.add_argument('--fdr', default=0.05, type=np.double)
 parser.add_argument('--seed', default=None, help='Random number generator seed')
 parser.add_argument('--exclude_samples', default=None, help='')
+parser.add_argument('--qvalue_lambda', default=None, help='lambda parameter for pi0est in qvalue.')
 parser.add_argument('-t', '--threads', default=8, type=int, help='Number of threads')
 parser.add_argument('-o', '--output_dir', default='.', help='Output directory')
 args = parser.parse_args()
@@ -92,6 +93,8 @@ with cd(args.output_dir):
         print('Calculating q-values', flush=True)
         cmd = 'Rscript '+os.path.join(fastqtl_dir, 'R', 'calculateSignificanceFastQTL.R')\
             +' '+args.prefix+'.txt.gz '+str(args.fdr)+' '+args.prefix+'.egenes.txt.gz'
+        if args.qvalue_lambda is not None:
+            cmd += ' --lambda '+args.qvalue_lambda
         subprocess.check_call(cmd, shell=True, executable='/bin/bash')
         os.remove(args.prefix+'.txt.gz')
     else:
