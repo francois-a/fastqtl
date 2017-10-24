@@ -30,10 +30,9 @@ with open(args.annotation_gtf) as gtf:
     for row in gtf:
         row = row.strip().split('\t')
         if row[0][0]=='#' or row[2]!='gene': continue
-        attributes = row[8].split('; ',5)
-        gene_id = attributes[0].split()[1].replace('"','')
-        gene_name = attributes[4].split()[1].replace('"','')
-        gene_dict[gene_id] = [gene_name, row[0], row[3], row[4], row[6]]
+        # get gene_id and gene_name from attributes
+        attr = dict([i.split() for i in row[8].replace('"','').split(';') if i!=''])
+        gene_dict[attr['gene_id']] = [attr['gene_name'], row[0], row[3], row[4], row[6]]
 
 print('['+datetime.now().strftime("%b %d %H:%M:%S")+'] Annotating permutation results (eGenes)', flush=True)
 gene_df = pd.read_csv(args.permutation_results, sep='\t', index_col=0)
