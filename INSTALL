@@ -43,7 +43,7 @@ If it doesn't run, i'm afraid you've got to compile the code (See section B).
 (B.1) INSTALL R development version
 	(1) Install Rmath header files
 	On Debian/Ubunutu, just run:		`sudo apt-get install r-base-dev`
-	(2) Find it 						`find /usr/share/ -iname *Rmath*`
+	(2) Find the Rmath.h file 						`find /usr/ -iname Rmath.h`
 
 (B.2.1) INSTALL BOOST (if not already installer, OPTION1: MANUALLY)
 	(1) Download BOOST:					`http://sourceforge.net/projects/boost/files/boost/1.58.0/boost_1_58_0.tar.gz/download`
@@ -65,7 +65,7 @@ If it doesn't run, i'm afraid you've got to compile the code (See section B).
 (B.4) COMPILE FASTQTL
 	(1) Go to the fastqtl folder:		`cd FastQTL-2.165`
 	(2) Compile the code running:		`make cleanall && make`
-		This later step needs the Rmath library from R and the obj subfolder to be present.
+		This later step needs the Rmath library see (B.1) from R and the `obj\` subfolder to be present.
 		This can be specified here by:	`mkdir obj && make RMATH=/usr/share/R/ LIB_MATH='-lRmath -I/usr/share/R/include/Rmath.h'`
 		
 ############################################################################################
