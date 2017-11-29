@@ -9,7 +9,7 @@ suppressMessages(library(argparser))
 # parse inputs
 p <- arg_parser("Annotates FastQTL permutation output and runs qvalue")
 p <- add_argument(p, "fastqtlOutput", help="")
-p <- add_argument(p, "fdr", help="")
+p <- add_argument(p, "fdr", type="numeric", help="")
 p <- add_argument(p, "outfile", help="")
 p <- add_argument(p, "--lambda", type="numeric", help="", default=NULL)
 args <- parse_args(p)
