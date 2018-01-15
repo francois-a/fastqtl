@@ -8,6 +8,7 @@ CXX=g++ -std=c++11
 VPATH=$(shell for file in `find src -name *.cpp`; do echo $$(dirname $$file); done)
 PATH_TABX=lib/Tabix
 PATH_EIGN=lib/Eigen
+OBJDIR=obj
 
 #compiler flags
 CXXFLAG_OPTI=-O3 -D_FAST_CORRELATION
@@ -45,35 +46,38 @@ all: linux
 linux: CXXFLAG=$(CXXFLAG_OPTI) $(CXXFLAG_WARN)
 linux: IFLAG=$(INC_BASE) $(INC_MATH)
 linux: LIB=$(LIB_MATH) $(LIB_TABX) $(LIB_BASE)
-linux: LDFLAG=$(LDFLAG_OPTI)  
-linux: $(FILE_BIN)
+linux: LDFLAG=$(LDFLAG_OPTI)
+linux: $(OBJDIR) $(FILE_BIN)
 
 #macos release
 macos: CXXFLAG=$(CXXFLAG_OPTI) $(CXXFLAG_WARN) $(CXXFLAG_MACX)
 macos: IFLAG=$(INC_BASE) $(INC_MACX) $(INC_MATH)
 macos: LIB=$(LIB_MACX) $(LIB_MATH) $(LIB_TABX) $(LIB_BASE)
-macos: LDFLAG=$(LDFLAG_OPTI) $(LDFLAG_MACX)  
-macos: $(FILE_BIN)
+macos: LDFLAG=$(LDFLAG_OPTI) $(LDFLAG_MACX)
+macos: $(OBJDIR) $(FILE_BIN)
 
 #debug release
 debug: CXXFLAG=$(CXXFLAG_DEBG) $(CXXFLAG_WARN)
 debug: IFLAG=$(INC_BASE) $(INC_MATH)
 debug: LIB=$(LIB_MATH) $(LIB_TABX) $(LIB_BASE)
 debug: LDFLAG=$(LDFLAG_DEBG)
-debug: $(FILE_BIN)
+debug: $(OBJDIR) $(FILE_BIN)
 
 #compilation
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
+
 $(LIB_TABX):
 	cd $(PATH_TABX) && make && cd ../..
 
 $(FILE_BIN): $(FILE_O) $(LIB_TABX)
 	$(CXX) $(LDFLAG) $^ $(LIB) -o $@
 
-obj/%.o: %.cpp $(FILE_H)
+$(OBJDIR)/%.o: %.cpp $(FILE_H)
 	$(CXX) $(CXXFLAG) -o $@ -c $< $(IFLAG)
 
 clean: 
-	rm -f obj/*.o $(FILE_BIN)
-	
+	rm -f $(OBJDIR)/*.o $(FILE_BIN)
+
 cleanall: clean 
-	cd $(PATH_TABX) && make clean && cd ../..	
+	cd $(PATH_TABX) && make clean && cd ../..
