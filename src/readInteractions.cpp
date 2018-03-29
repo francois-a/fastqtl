@@ -18,16 +18,16 @@
 
 
 void data::readInteractions(string fcov) {
-	string buffer;
-	vector < string > str;
-	int n_sample_found = 0;
+    string buffer;
+    vector < string > str;
+    int n_sample_found = 0;
 
-	LOG.println("\nReading interaction term in [" + fcov + "]");
-	ifile fd (fcov);
+    LOG.println("\nReading interaction term in [" + fcov + "]");
+    ifile fd (fcov);
 
-	//Read interactions
-	interaction_val = vector < float >(sample_count, 0.0);
-	while(getline(fd, buffer)) {
+    //Read interactions
+    interaction_val = vector < float >(sample_count, 0.0);
+    while(getline(fd, buffer)) {
         sutils::tokenize(buffer, str, "\t");
         if (str.size() != 2) LOG.error("Wrong interaction file format");
 
@@ -37,15 +37,15 @@ void data::readInteractions(string fcov) {
 
         //
         if (idx_sample >=0) {
-        	interaction_val[idx_sample] = atof(str[1].c_str());
-        	n_sample_found ++;
+            interaction_val[idx_sample] = atof(str[1].c_str());
+            n_sample_found ++;
         }
-	}
-	if (n_sample_found != sample_count)
-		LOG.error("Number of overlapping samples in interaction file is " + sutils::int2str(n_sample_found) + " and should be " + sutils::int2str(sample_count));
+    }
+    if (n_sample_found != sample_count)
+        LOG.error("Number of overlapping samples in interaction file is " + sutils::int2str(n_sample_found) + " and should be " + sutils::int2str(sample_count));
 
-	//Finalise
-	LOG.println("  * " + sutils::int2str(n_sample_found) + " samples included");
-	fd.close();
+    //Finalise
+    LOG.println("  * " + sutils::int2str(n_sample_found) + " samples included");
+    fd.close();
 }
 

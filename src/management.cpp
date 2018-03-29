@@ -104,7 +104,7 @@ void data::clusterizePhenotypes(int K) {
 
     // each chr must have at least 1 chunk
     std::map<std::string,int> num_chunks;
-    for(const auto &kv : num_pheno) {
+    for (const auto &kv : num_pheno) {
         num_chunks[kv.first] = 1;
     }
 
@@ -123,19 +123,36 @@ void data::clusterizePhenotypes(int K) {
         chunk_size[max_key] = ceil((double)num_pheno[max_key]/(double)num_chunks[max_key]);  // adjust chunk size
     }
 
+    // evenly distributed chunk sizes
+    std::map<std::string, vector<int> > chunk_sizes;
+    for (const auto &kv : num_pheno) {
+        chunk_sizes[kv.first] = vector <int> (num_chunks[kv.first], (int)floor(num_pheno[kv.first]/num_chunks[kv.first]));
+        int d = num_pheno[kv.first] - std::accumulate(chunk_sizes[kv.first].begin(), chunk_sizes[kv.first].end(), 0);
+        for (int i=0;i<d;++i) {
+            chunk_sizes[kv.first][i] += 1;
+        }
+    }
+
     // now, split according to chr and chunk size
     phenotype_cluster = vector < vector < int > > (1, vector < int > (1, 0));  // first phenotype already stored (index 0)
-    int chr_offset = 0;
+    int chunk = 0;
+    int chunk_index = 1;
     for (int p=1; p<phenotype_count; ++p) {
         if (phenotype_chr[p]!=phenotype_chr[p-1]) {  // new chr --> new chunk
-            chr_offset += num_pheno[phenotype_chr[p-1]];
+            chunk = 0;
+            chunk_index = 1;
             phenotype_cluster.push_back(vector < int > (1, p));
-        } else if (((p-chr_offset) % chunk_size[phenotype_chr[p]])==0) {  // new chunk
+        } else if (chunk_index==chunk_sizes[phenotype_chr[p]][chunk]) {  // new chunk
+            chunk += 1;
+            chunk_index = 1;
             phenotype_cluster.push_back(vector < int > (1, p));
         } else {  // add to current chunk
             phenotype_cluster.back().push_back(p);
+            chunk_index += 1; // next index in current chunk
         }
     }
+    if (phenotype_cluster.size() != K)
+        LOG.error("Chunks ("+sutils::int2str(phenotype_cluster.size())+") do not match input ("+sutils::int2str(K)+")");
 }
 
 bool data::setPhenotypeRegion(string reg) {
