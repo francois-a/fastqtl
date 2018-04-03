@@ -20,20 +20,23 @@
 void data::runPermutationPerGroup(string fout, vector < int > nPermutations) {
 
     //0. Prepare genotypes
+    vector < double > genotype_sd = vector < double > (genotype_count, 0.0);
     if (covariate_count > 0) {
         LOG.println("\nCorrecting genotypes for covariates");
         covariate_engine->residualize(genotype_orig);
     }
+    for (int g = 0 ; g < genotype_count ; g ++)
+        genotype_sd[g] = RunningStat(genotype_orig[g]).StandardDeviation();
     normalize(genotype_orig);
 
-    //1. Prepare phenotype groups
+    //1. Prepare phenotype groups: group indexes
     LOG.println("\nBuilding groups");
     vector < vector < int > > PG;
     for (int p = 0 ; p < phenotype_count ; p ++) {
-        if (p == 0 || phenotype_grp [p-1] != phenotype_grp [p]) PG.push_back(vector < int > (1, p));
+        if (p == 0 || phenotype_grp[p-1] != phenotype_grp[p]) PG.push_back(vector < int > (1, p));
         else PG.back().push_back(p);
     }
-    LOG	.println("  * Number of groups = " + sutils::int2str(PG.size()));
+    LOG.println("  * Number of groups = " + sutils::int2str(PG.size()));
 
     //2. Loop over groups
     ofile fdo (fout);
@@ -60,12 +63,13 @@ void data::runPermutationPerGroup(string fout, vector < int > nPermutations) {
 
         //1.3. Nominal pass: scan cis-window & compute statistics
         double bestCorr = 0.0;
+        double bestSD = 0.0;
         int bestDistance = ___LI___, bestIndex = -1;
-        string bestExon = "NA";
-        for (int p = 0 ; p < phenotype_curr.size() ; p ++) {
+        string bestFeature = "NA";
+        for (int p = 0 ; p < phenotype_curr.size() ; p ++) {  // phenotypes in group
             for (int l = 0 ; l < targetGenotypes.size() ; l ++) {
                 double corr = getCorrelation(genotype_orig[targetGenotypes[l]], phenotype_curr[p]);
-                if (corr > 1) {
+                if (corr > 1) {  // print debugging info
                     cerr << endl;
                     cerr << "************************************************************************************************" << endl;
                     cerr << g << "/" << PG.size() << " " << p << "/" << phenotype_curr.size() << " " << l << "/" << targetGenotypes.size() << endl;
@@ -76,14 +80,14 @@ void data::runPermutationPerGroup(string fout, vector < int > nPermutations) {
                 }
                 if (abs(corr) > abs(bestCorr) || (abs(corr) == abs(bestCorr) && abs(targetDistances[l]) < bestDistance)) {
                     bestCorr = corr;
+                    bestSD = RunningStat(phenotype_curr[p]).StandardDeviation();
                     bestDistance = targetDistances[l];
                     bestIndex = targetGenotypes[l];
-                    bestExon = phenotype_id[PG[g][p]];
+                    bestFeature = phenotype_id[PG[g][p]];
                 }
             }
         }
         if (targetGenotypes.size() > 0) {
-
             LOG.println("  * Best correlation = " + sutils::double2str(bestCorr, 4));
         }
 
@@ -94,7 +98,7 @@ void data::runPermutationPerGroup(string fout, vector < int > nPermutations) {
         do {
             double bestCperm = 0.0;
             copy(phenotype_orig.begin() + PG[g][0], phenotype_orig.begin() + PG[g].back() + 1, phenotype_curr.begin());
-            putils::random_shuffle(phenotype_curr);
+            putils::random_shuffle(phenotype_curr);  // same permutation for each feature
             if (covariate_count > 0) covariate_engine->residualize(phenotype_curr);
             normalize(phenotype_curr);
             for (int p = 0 ; p < phenotype_curr.size() ; p ++) {
@@ -117,7 +121,7 @@ void data::runPermutationPerGroup(string fout, vector < int > nPermutations) {
         vector < double > permPvalues;
         double true_df = sample_count - 2 - ((covariate_count>0)?covariate_engine->nCovariates():0);
         double mean = 0.0, variance = 0.0, beta_shape1 = 1.0, beta_shape2 = 1.0;
-        fdo << bestExon << " " << targetGenotypes.size();
+        fdo << bestFeature << "\t" << targetGenotypes.size();
         if (targetGenotypes.size() > 0) {
             //Estimate number of degrees of freedom
             if (putils::variance(permCorr, putils::mean(permCorr)) != 0.0) {
@@ -134,24 +138,35 @@ void data::runPermutationPerGroup(string fout, vector < int > nPermutations) {
             if (targetGenotypes.size() > 1 && mean != 1.0) {
                 beta_shape1 = mean * (mean * (1 - mean ) / variance - 1);
                 beta_shape2 = beta_shape1 * (1 / mean - 1);
-                if (targetGenotypes.size() > 10) mleBeta(permPvalues, beta_shape1, beta_shape2);	//ML estimate if more than 10 variant in cis
+                if (targetGenotypes.size() > 10) mleBeta(permPvalues, beta_shape1, beta_shape2);  //ML estimate if more than 10 variant in cis
             }
             LOG.println("  * Beta distribution parameters = " + sutils::double2str(beta_shape1, 4) + " " + sutils::double2str(beta_shape2, 4));
-            fdo << " " << beta_shape1 << " " << beta_shape2 << " " << true_df;
-        } else fdo << " NA NA NA";
+            fdo << "\t" << beta_shape1 << "\t" << beta_shape2 << "\t" << true_df;
+        } else fdo << "\tNA\tNA\tNA";
 
         //1.6. Writing results
         if (targetGenotypes.size() > 0 && bestIndex >= 0) {
             double pval_fdo = getPvalue(bestCorr, true_df);
-            double pval_nom = getPvalue(bestCorr, sample_count - 2 - ((covariate_count>0)?covariate_engine->nCovariates():0));
-            fdo << " " << genotype_id[bestIndex];
-            fdo << " " << bestDistance;
-            fdo << " " << pval_nom;
-            fdo << " " << (nBetterCorrelation + 1) * 1.0 / (countPermutations + 1.0);
-            fdo << " " << pbeta(pval_fdo, beta_shape1, beta_shape2, 1, 0);
-            fdo << " " << phenotype_grp[PG[g][0]];
-            fdo << " " << PG[g].size();
-        } else fdo << " NA NA NA NA NA NA NA";
+            double df = sample_count - 2 - ((covariate_count>0)?covariate_engine->nCovariates():0);
+            double tstat2 = getTstat2(bestCorr, df);
+            double pval_nom = getPvalueFromTstat2(tstat2, df);
+            double pval_slope = getSlope(bestCorr, bestSD, genotype_sd[bestIndex]);
+            double slope_se = abs(pval_slope) / sqrt(tstat2);
+            fdo << "\t" << pval_fdo;
+            fdo << "\t" << genotype_id[bestIndex];
+            fdo << "\t" << bestDistance;
+            fdo << "\t" << genotype_ma_samples[bestIndex];
+            fdo << "\t" << genotype_ma_count[bestIndex];
+            fdo << "\t" << genotype_maf[bestIndex];
+            fdo << "\t" << genotype_ref_factor[bestIndex];
+            fdo << "\t" << pval_nom;
+            fdo << "\t" << pval_slope;
+            fdo << "\t" << slope_se;
+            fdo << "\t" << (nBetterCorrelation + 1) * 1.0 / (countPermutations + 1.0);
+            fdo << "\t" << pbeta(pval_fdo, beta_shape1, beta_shape2, 1, 0);
+            fdo << "\t" << phenotype_grp[PG[g][0]];  // group ID
+            fdo << "\t" << PG[g].size();
+        } else fdo << "\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA";
         fdo << endl;
 
         LOG.println("  * Progress = " + sutils::double2str((g+1) * 100.0 / PG.size(), 1) + "%");

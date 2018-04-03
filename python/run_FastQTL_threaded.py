@@ -8,6 +8,8 @@ import gzip
 import multiprocessing as mp
 import contextlib
 from datetime import datetime
+import tempfile
+import glob
 
 @contextlib.contextmanager
 def cd(cd_path):
@@ -21,8 +23,10 @@ def get_cmd(args, chunk):
         +' --maf-threshold '+args.maf_threshold+' --ma-sample-threshold '+args.ma_sample_threshold
     if args.covariates:
         cmd += ' --cov '+args.covariates
+    if args.phenotype_groups:
+        cmd += ' --grp '+args.phenotype_groups
     if args.threshold:
-        cmd += ' --threshold'+args.threshold
+        cmd += ' --threshold '+args.threshold
     if args.permute:
         cmd += ' --permute '+' '.join([str(p) for p in args.permute])
     if args.best_variant_only:
@@ -51,6 +55,7 @@ parser.add_argument('vcf', help='Genotypes in VCF 4.1 format')
 parser.add_argument('bed', help='Phenotypes in UCSC BED extended format')
 parser.add_argument('prefix', help='Prefix for output file name')
 parser.add_argument('--covariates', default='', help='Covariates')
+parser.add_argument('--phenotype_groups', default='', help='File with mapping of phenotype_id to group_id (gene_id)')
 parser.add_argument('--chunks', default='100', help='Number of chunks, minimum: #chromosomes')
 parser.add_argument('--permute', default=None, type=str, nargs='+', help='Number of permutations, e.g. [1000, 10000] (adaptive). Default: None (run nominal pass)')
 parser.add_argument('--best_variant_only', action='store_true')
@@ -70,53 +75,38 @@ fastqtl_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)
 if not os.path.exists(args.output_dir):
     os.makedirs(args.output_dir)
 
+print('['+datetime.now().strftime("%b %d %H:%M:%S")+'] Running FastQTL on {0:d} threads.'.format(args.threads), flush=True)
+
 with cd(args.output_dir):
-    print('['+datetime.now().strftime("%b %d %H:%M:%S")+'] Running FastQTL on {0:d} threads.'.format(args.threads), flush=True)
     with mp.Pool(processes=args.threads) as pool:
         pdata_res = [pool.map_async(perm_worker, ((args,k),)) for k in np.arange(1,int(args.chunks)+1)]
         pool.close()
         pool.join()
     for res in pdata_res:  # check exit status
         assert res.get()[0]==0
-    print('['+datetime.now().strftime("%b %d %H:%M:%S")+'] Done.', flush=True)
 
-    if args.permute:
+    with tempfile.NamedTemporaryFile(mode='w+') as chunk_list_file, \
+         tempfile.NamedTemporaryFile(mode='w+') as log_list_file:
+
+        # write chunk and log paths to file
+        chunk_files = sorted(glob.glob('*_chunk*.txt.gz'))
+        chunk_list_file.write('\n'.join(chunk_files)+'\n')
+        chunk_list_file.flush()
+        log_files = sorted(glob.glob('*_chunk*.log'))
+        log_list_file.write('\n'.join(log_files)+'\n')
+        log_list_file.flush()
+
         # merge chunks
-        print('Merging chunks ... ', end='', flush=True)
-        cmd = 'zcat '+args.prefix+'_chunk*.txt.gz | gzip -c -1 > '+args.prefix+'.txt.gz && rm '+args.prefix+'_chunk*.txt.gz'
-        subprocess.check_call(cmd, shell=True, executable='/bin/bash')
-        cmd = 'cat '+args.prefix+'_chunk*.log > '+args.prefix+'.egenes.log && rm '+args.prefix+'_chunk*.log'
-        subprocess.check_call(cmd, shell=True, executable='/bin/bash')
-        print('done.', flush=True)
+        cmd = 'python '+os.path.join(fastqtl_dir, 'python', 'merge_chunks.py') \
+            +' {} {} {} --fdr {} -o .'.format(chunk_list_file.name, log_list_file.name, args.prefix, args.fdr)
+        if args.qvalue_lambda:
+            cmd += ' --qvalue_lambda {}'.format(args.qvalue_lambda)
+        if args.phenotype_groups:
+            cmd += ' --grp_permute'
+        elif args.permute:
+            cmd += ' --permute'
+        subprocess.check_call(cmd, shell=True)
 
-        # calculate q-values (R script also adds header)
-        print('Calculating q-values', flush=True)
-        cmd = 'Rscript '+os.path.join(fastqtl_dir, 'R', 'calculateSignificanceFastQTL.R')\
-            +' '+args.prefix+'.txt.gz '+str(args.fdr)+' '+args.prefix+'.egenes.txt.gz'
-        if args.qvalue_lambda is not None:
-            cmd += ' --lambda '+args.qvalue_lambda
-        subprocess.check_call(cmd, shell=True, executable='/bin/bash')
-        os.remove(args.prefix+'.txt.gz')
-    else:
-        # merge chunks
-        print('Merging chunks ... ', end='', flush=True)
-        with gzip.open('header_chunk.txt.gz', 'wb') as f:  # order from analysisNominal.cpp
-            f.write(('\t'.join([
-                'gene_id',
-                'variant_id',
-                'tss_distance',
-                'ma_samples',
-                'ma_count',
-                'maf',
-                'pval_nominal',
-                'slope',
-                'slope_se',
-            ])+'\n').encode('utf-8'))
-        cmd = 'zcat header_chunk.txt.gz '+args.prefix+'_chunk*.txt.gz | gzip -c -1 > '+args.prefix+'.txt.gz && rm '+args.prefix+'_chunk*.txt.gz'
-        subprocess.check_call(cmd, shell=True, executable='/bin/bash')
-        os.remove('header_chunk.txt.gz')
-        cmd = 'cat '+args.prefix+'_chunk*.log > '+args.prefix+'.allpairs.log && rm '+args.prefix+'_chunk*.log'
-        subprocess.check_call(cmd, shell=True, executable='/bin/bash')
-        print('done.', flush=True)
-
-        os.rename(args.prefix+'.txt.gz', args.prefix+'.allpairs.txt.gz')
+        # remove chunk files
+        for f in chunk_files + log_files:
+            os.remove(f)
