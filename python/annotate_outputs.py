@@ -51,7 +51,7 @@ if args.snp_lookup:
         dtype={'chr':str, 'variant_pos':np.int64, 'variant_id':str, 'ref':str, 'alt':str, 'num_alt_per_site':np.int32})
     gene_df = gene_df.join(snp_lookup_df, on='variant_id')  # add variant information
     col_order += list(snp_lookup_df.columns)
-col_order += ['minor_allele_samples', 'minor_allele_count', 'maf', 'ref_factor',
+col_order += ['ma_samples', 'ma_count', 'maf', 'ref_factor',
     'pval_nominal', 'slope', 'slope_se', 'pval_perm', 'pval_beta', 'qval', 'pval_nominal_threshold']
 gene_df = gene_df[col_order]
 
