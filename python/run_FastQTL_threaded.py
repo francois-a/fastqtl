@@ -97,7 +97,7 @@ with cd(args.output_dir):
         log_list_file.flush()
 
         # merge chunks
-        cmd = 'python '+os.path.join(fastqtl_dir, 'python', 'merge_chunks.py') \
+        cmd = 'python3 '+os.path.join(fastqtl_dir, 'python', 'merge_chunks.py') \
             +' {} {} {} --fdr {} -o .'.format(chunk_list_file.name, log_list_file.name, args.prefix, args.fdr)
         if args.qvalue_lambda:
             cmd += ' --qvalue_lambda {}'.format(args.qvalue_lambda)
