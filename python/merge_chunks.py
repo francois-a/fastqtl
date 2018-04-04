@@ -89,5 +89,6 @@ if __name__=='__main__':
                 cmd += ' --lambda '+args.qvalue_lambda
             subprocess.check_call(cmd, shell=True, executable='/bin/bash')
             os.remove(args.prefix+'.txt.gz')
+            os.rename(args.prefix+'.log', args.prefix+'.genes.log')
 
     print('['+datetime.now().strftime("%b %d %H:%M:%S")+'] Done', flush=True)
