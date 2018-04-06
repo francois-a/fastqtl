@@ -18,8 +18,10 @@ def get_cmd(args):
         +' --maf-threshold '+args.maf_threshold+' --ma-sample-threshold '+args.ma_sample_threshold
     if args.covariates:
         cmd += ' --cov '+args.covariates
+    if args.phenotype_groups:
+        cmd += ' --grp '+args.phenotype_groups
     if args.threshold:
-        cmd += ' --threshold'+args.threshold
+        cmd += ' --threshold '+args.threshold
     if args.permute:
         cmd += ' --permute '+' '.join([str(p) for p in args.permute])
     if args.best_variant_only:
@@ -40,6 +42,7 @@ parser.add_argument('bed', help='Phenotypes in UCSC BED extended format')
 parser.add_argument('prefix', help='Prefix for output file name')
 parser.add_argument('chunk', type=int, nargs=2, help='Chunk and total number of chunks, e.g., 1 100')
 parser.add_argument('--covariates', default='', help='Covariates')
+parser.add_argument('--phenotype_groups', default='', help='File with mapping of phenotype_id to group_id (gene_id)')
 parser.add_argument('--permute', default=None, type=str, nargs='+', help='Number of permutations, e.g. [1000, 10000] (adaptive). Default: None (run nominal pass)')
 parser.add_argument('--best_variant_only', action='store_true')
 parser.add_argument('--window', default='1e6', help='Cis-window size. Default values is 1Mb (1e6).')
