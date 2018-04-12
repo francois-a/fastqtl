@@ -16,7 +16,6 @@ parser.add_argument('fdr', type=np.double, help='False discovery rate (e.g., 0.0
 parser.add_argument('annotation_gtf', help='Annotation in GTF format')
 parser.add_argument('--snp_lookup', default='', help='Tab-delimited file with columns: chr, variant_pos, variant_id, ref, alt, num_alt_per_site, rs_id_dbSNP...')
 parser.add_argument('--nominal_results', default='', help='FastQTL output from nominal pass')
-parser.add_argument('--nominal_results_unnormalized', nargs=2, default='', help='FastQTL output file (nominal pass), and units')
 parser.add_argument('-o', '--output_dir', default='.', help='Output directory')
 args = parser.parse_args()
 
@@ -36,7 +35,10 @@ with open(args.annotation_gtf) as gtf:
 
 print('['+datetime.now().strftime("%b %d %H:%M:%S")+'] Annotating permutation results (eGenes)', flush=True)
 gene_df = pd.read_csv(args.permutation_results, sep='\t', index_col=0)
-gene_info = pd.DataFrame(data=[gene_dict[i] for i in gene_df.index], columns=['gene_name', 'gene_chr', 'gene_start', 'gene_end', 'strand'], index=gene_df.index)
+if 'group_id' in gene_df:
+    gene_info = pd.DataFrame(data=[gene_dict[i] for i in gene_df['group_id']], columns=['gene_name', 'gene_chr', 'gene_start', 'gene_end', 'strand'], index=gene_df.index)
+else:
+    gene_info = pd.DataFrame(data=[gene_dict[i] for i in gene_df.index], columns=['gene_name', 'gene_chr', 'gene_start', 'gene_end', 'strand'], index=gene_df.index)
 gene_df = pd.concat([gene_info, gene_df], axis=1)
 assert np.all(gene_df.index==gene_info.index)
 
@@ -52,7 +54,10 @@ if args.snp_lookup:
     gene_df = gene_df.join(snp_lookup_df, on='variant_id')  # add variant information
     col_order += list(snp_lookup_df.columns)
 col_order += ['ma_samples', 'ma_count', 'maf', 'ref_factor',
-    'pval_nominal', 'slope', 'slope_se', 'pval_perm', 'pval_beta', 'qval', 'pval_nominal_threshold']
+    'pval_nominal', 'slope', 'slope_se', 'pval_perm', 'pval_beta']
+if 'group_id' in gene_df:
+    col_order += ['group_id', 'num_features']
+col_order += ['qval', 'pval_nominal_threshold']
 gene_df = gene_df[col_order]
 
 outname = os.path.join(args.output_dir, os.path.split(args.permutation_results)[1].split('.txt.gz')[0]+'.annotated.txt.gz')
@@ -84,20 +89,6 @@ if args.nominal_results:
         mask.append(m)
         print('Chunks processed: {0:d}'.format(i+1), end='\r', flush=True)
     signif_df = pd.concat(signif_df, axis=0)
-
-    if args.nominal_results_unnormalized:
-        signif_raw_df = []
-        print('['+datetime.now().strftime("%b %d %H:%M:%S")+'] Filtering significant variant-gene pairs (unnormalized)', flush=True)
-        for i,chunk in enumerate(pd.read_csv(args.nominal_results_unnormalized[0], sep='\t', iterator=True, chunksize=1000000,
-            usecols=['gene_id', 'variant_id', 'slope', 'slope_se'], index_col=1, dtype={'gene_id':str, 'variant_id':str, 'slope':np.float32, 'slope_se':np.float32})):
-            chunk = chunk[chunk['gene_id'].isin(egene_ids)]
-            signif_raw_df.append(chunk[mask[i]])
-            print('Chunks processed: {0:d}'.format(i+1), end='\r', flush=True)
-        signif_raw_df = pd.concat(signif_raw_df, axis=0)
-        signif_raw_df.rename(columns={'slope':'slope_'+args.nominal_results_unnormalized[1], 'slope_se':'slope_'+args.nominal_results_unnormalized[1]+'_se'}, inplace=True)
-        assert np.all(signif_df.index==signif_raw_df.index)
-        signif_df = pd.concat([signif_df, signif_raw_df[signif_raw_df.columns[1:]]], axis=1)
-
     signif_df = signif_df.merge(egene_df, left_on='gene_id', right_index=True)
 
     outname = os.path.join(args.output_dir, os.path.split(args.nominal_results)[1].split('.allpairs.txt.gz')[0]+'.signifpairs.txt.gz')
