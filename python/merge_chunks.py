@@ -60,14 +60,12 @@ if __name__=='__main__':
             'variant_id', 'tss_distance', 'ma_samples', 'ma_count', 'maf', 'ref_factor',
             'pval_nominal', 'slope', 'slope_se', 'pval_perm', 'pval_beta'
         ]
-        prefix = args.prefix
-    elif args.grp_permute:
-        header = [
-            'feature_id', 'num_var', 'beta_shape1', 'beta_shape2', 'true_df', 'pval_true_df',
-            'variant_id', 'tss_distance', 'ma_samples', 'ma_count', 'maf', 'ref_factor',
-            'pval_nominal', 'slope', 'slope_se', 'pval_perm', 'pval_beta',
-            'group_id', 'num_features'
-        ]
+        with open(args.chunk_list) as f:
+            with gzip.open(f.readline().strip(), 'rt') as f2:
+                ncol = len(f2.readline().strip().split('\t'))
+        if ncol==19:
+            header += ['group_id', 'num_features']
+            print('  * group permutation output detected')
         prefix = args.prefix
     else:  # nominal
         header = [
