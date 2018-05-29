@@ -158,14 +158,16 @@ int main(int argc, char ** argv) {
     //----------------------------
     if (options.count("interaction")) {
         if (options.count("permute")) {
-            LOG.println("\nPerform permutation based interaction analysis (used to calculate corrected p-values for MPs)");
+            LOG.println("\nPerform permutation-based interaction analysis (used to calculate corrected p-values for MPs)");
             vector < int > nPerm = options["permute"].as < vector < int > > ();
             if (nPerm.size() != 1) LOG.error("Interactions only work with a fixed number of permutations!");
             else {
                 if (nPerm[0] < 50) LOG.warning("Permutation number seems to be low, check parameters");
                 LOG.println("  * Perform " + sutils::int2str(nPerm[0]) + " permutations");
             }
-        } else LOG.error("Interactions only work with permutations!");
+        } else {
+            LOG.println("\nPerform nominal interaction analysis");
+        }
         LOG.println("  * Test interaction with term from [" + options["interaction"].as < string > () + "]");
     } else if (options.count("permute")) {
         LOG.println("\nPerform permutation based analysis (used to calculate corrected p-values for MPs)");
@@ -282,9 +284,13 @@ int main(int argc, char ** argv) {
         //-----------------
         // 12. RUN ANALYSIS
         //-----------------
-        if (options.count("interaction"))
-            D.runPermutationInteraction(options["out"].as < string > (), options["permute"].as < vector < int > > ()[0]);
-        else if (options.count("permute") && options.count("grp"))
+        if (options.count("interaction")) {
+            if (options.count("permute")) {
+                D.runPermutationInteraction(options["out"].as < string > (), options["permute"].as < vector < int > > ()[0]);
+            } else {
+                D.runNominalInteraction(options["out"].as < string > (), options["threshold"].as < double > ());
+            }
+        } else if (options.count("permute") && options.count("grp"))
             D.runPermutationPerGroup(options["out"].as < string > (), options["permute"].as < vector < int > > ());
         else if (options.count("permute")) {
             if (options.count("psequence")) D.runPermutation(options["out"].as < string > (), options["psequence"].as < string > ());

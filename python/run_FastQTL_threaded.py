@@ -29,6 +29,8 @@ def get_cmd(args, chunk):
         cmd += ' --threshold '+args.threshold
     if args.permute:
         cmd += ' --permute '+' '.join([str(p) for p in args.permute])
+    if args.interaction:
+        cmd += ' --interaction '+args.interaction
     if args.best_variant_only:
         cmd += ' --report-best-only'
     if args.seed:
@@ -58,6 +60,7 @@ parser.add_argument('--covariates', default='', help='Covariates')
 parser.add_argument('--phenotype_groups', default='', help='File with mapping of phenotype_id to group_id (gene_id)')
 parser.add_argument('--chunks', default='100', help='Number of chunks, minimum: #chromosomes')
 parser.add_argument('--permute', default=None, type=str, nargs='+', help='Number of permutations, e.g. [1000, 10000] (adaptive). Default: None (run nominal pass)')
+parser.add_argument('--interaction', default=None, type=str, help='Interaction term')
 parser.add_argument('--best_variant_only', action='store_true')
 parser.add_argument('--window', default='1e6', help='Cis-window size. Default values is 1Mb (1e6).')
 parser.add_argument('--threshold', default='', help='Output only significant phenotype-variant pairs with a p-value below threshold (default 1)')
