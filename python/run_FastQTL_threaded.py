@@ -37,6 +37,8 @@ def get_cmd(args, chunk):
         cmd += ' --seed '+args.seed
     if args.exclude_samples:
         cmd += ' --exclude-samples '+args.exclude_samples
+    if args.exclude_sites:
+        cmd += ' --exclude-sites '+args.exclude_sites
     cmd += ' --chunk '+str(chunk)+' '+args.chunks\
         + ' --out '+args.prefix+'_chunk{0:03d}.txt.gz'.format(chunk)\
         + ' --log '+args.prefix+'_chunk{0:03d}.log'.format(chunk)
@@ -69,6 +71,7 @@ parser.add_argument('--ma_sample_threshold', default='0', help='Include only gen
 parser.add_argument('--fdr', default=0.05, type=np.double)
 parser.add_argument('--seed', default=None, help='Random number generator seed')
 parser.add_argument('--exclude_samples', default=None, help='')
+parser.add_argument('--exclude_sites', default=None, help='')
 parser.add_argument('--qvalue_lambda', default=None, help='lambda parameter for pi0est in qvalue.')
 parser.add_argument('-t', '--threads', default=8, type=int, help='Number of threads')
 parser.add_argument('-o', '--output_dir', default='.', help='Output directory')

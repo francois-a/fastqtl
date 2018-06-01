@@ -287,6 +287,8 @@ int main(int argc, char ** argv) {
         if (options.count("interaction")) {
             if (options.count("permute")) {
                 D.runPermutationInteraction(options["out"].as < string > (), options["permute"].as < vector < int > > ()[0]);
+            } else if (options["report-best-only"].as<bool>()) {
+                D.runNominalInteractionBest(options["out"].as < string > ());
             } else {
                 D.runNominalInteraction(options["out"].as < string > (), options["threshold"].as < double > ());
             }

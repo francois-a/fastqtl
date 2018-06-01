@@ -17,24 +17,9 @@
 #include "data.h"
 
 
-void data::runNominalBest(string fout) {
+void data::runNominalInteractionBest(string fout) {
 
-    //0. Prepare genotypes
-    vector < double > genotype_sd = vector < double > (genotype_count, 0.0);
-    vector < double > phenotype_sd = vector < double > (phenotype_count, 0.0);
-    if (covariate_count > 0) {
-        LOG.println("\nCorrecting genotypes & phenotypes for covariates");
-        covariate_engine->residualize(genotype_orig);
-        covariate_engine->residualize(phenotype_orig);
-    }
-    for (int g = 0 ; g < genotype_count ; g ++) genotype_sd[g] = RunningStat(genotype_orig[g]).StandardDeviation();
-    for (int p = 0 ; p < phenotype_count ; p ++) phenotype_sd[p] = RunningStat(phenotype_orig[p]).StandardDeviation();
-    normalize(genotype_orig);
-    normalize(phenotype_orig);
-
-    double df = sample_count - 2 - covariate_count;
-
-    //1. Loop over phenotypes
+    //0. Loop over phenotypes
     ofile fdo (fout);
     for (int p = 0 ; p < phenotype_count ; p ++) {
 
@@ -51,25 +36,47 @@ void data::runNominalBest(string fout) {
         }
         LOG.println("  * Number of variants in cis = " + sutils::int2str(targetGenotypes.size()));
 
-        //1.2. Nominal pass: scan cis-window for best variant & compute statistics
+        //1.2. Loop over genotypes
         int min_idx = 0;
         double min_pval = 1.0;
         double opt_corr = 0.0;
         double opt_tstat2 = 0.0;
+        double opt_phenotype_sd = 0.0;
+        double opt_interaction_sd = 0.0;
         for (int g = 0 ; g < targetGenotypes.size() ; g ++) {
-            double corr = getCorrelation(genotype_orig[targetGenotypes[g]], phenotype_orig[p]);
+
+            //RESIDUALIZER
+            covariate_engine->clearSoft();
+            covariate_engine->pushSoft(genotype_orig[targetGenotypes[g]]);
+
+            //INTERACTION TERM
+            vector < float > interaction_curr = genotype_orig[targetGenotypes[g]];
+            for (int i = 0 ; i < sample_count ; i++) interaction_curr[i] *= interaction_val[i];
+            covariate_engine->residualize(interaction_curr);
+            double interaction_sd = RunningStat(interaction_curr).StandardDeviation();
+            normalize(interaction_curr);
+
+            //NOMINAL STEP: scan cis-window for best variant & compute statistics
+            vector < float > phenotype_curr = phenotype_orig[p];
+            covariate_engine->residualize(phenotype_curr);
+            double phenotype_sd = RunningStat(phenotype_curr).StandardDeviation();
+            normalize(phenotype_curr);
+            double corr = getCorrelation(interaction_curr, phenotype_curr);
+            double df = sample_count - 2 - covariate_engine->nCovariates();
             double tstat2 = getTstat2(corr, df);
             double pval = getPvalueFromTstat2(tstat2, df);
-            if (pval<min_pval) {
+            if (pval < min_pval) {
                 min_idx = g;
                 min_pval = pval;
                 opt_corr = corr;
                 opt_tstat2 = tstat2;
+                opt_phenotype_sd = phenotype_sd;
+                opt_interaction_sd = interaction_sd;
             }
         }
         if (targetGenotypes.size()>0) {
             int gi = targetGenotypes[min_idx];
-            double slope = getSlope(opt_corr, phenotype_sd[p], genotype_sd[gi]);
+            double slope = getSlope(opt_corr, opt_phenotype_sd, opt_interaction_sd);
             double slope_se = abs(slope) / sqrt(opt_tstat2);
             fdo << phenotype_id[p];
             fdo << "\t" << genotype_id[gi];
