@@ -95,10 +95,10 @@ with cd(args.output_dir):
          tempfile.NamedTemporaryFile(mode='w+') as log_list_file:
 
         # write chunk and log paths to file
-        chunk_files = sorted(glob.glob('*_chunk*.txt.gz'))
+        chunk_files = sorted(glob.glob(args.prefix+'_chunk*.txt.gz'))
         chunk_list_file.write('\n'.join(chunk_files)+'\n')
         chunk_list_file.flush()
-        log_files = sorted(glob.glob('*_chunk*.log'))
+        log_files = sorted(glob.glob(args.prefix+'_chunk*.log'))
         log_list_file.write('\n'.join(log_files)+'\n')
         log_list_file.flush()
 
