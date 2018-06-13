@@ -260,7 +260,7 @@ int main(int argc, char ** argv) {
             D.clusterizePhenotypes(options["chunk"].as < vector < int > > ()[1]);
             D.setPhenotypeRegion(options["chunk"].as < vector < int > > ()[0] - 1);
             D.clear();
-        } else 	if (!D.setPhenotypeRegion(options["region"].as < string > ())) LOG.error("Impossible to interpret region [" + options["region"].as < string > () + "]");
+        } else if (!D.setPhenotypeRegion(options["region"].as < string > ())) LOG.error("Impossible to interpret region [" + options["region"].as < string > () + "]");
         D.deduceGenotypeRegion(options["window"].as < double > ());
 
         //---------------
