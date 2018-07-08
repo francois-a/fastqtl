@@ -26,11 +26,11 @@ using namespace Eigen;
 class residualizer {
 public:
 
-	int n_samples;
-	vector < vector < float > > hard_covariates;
-	vector < vector < float > > soft_covariates;
+    int n_samples;
+    vector < vector < float > > hard_covariates;
+    vector < vector < float > > soft_covariates;
 
-	bool matrices_uptodate;
+    bool matrices_uptodate;
     int m_rank;
     MatrixXd covarM;
     MatrixXd PQR_Q;
