@@ -56,6 +56,19 @@ void data::readGenotypesVCF(string fvcf) {
     }
     if (n_includedS != sample_count) LOG.error("Genotype data does not overlap with phenotype data, check your files!");
 
+    double median_interaction = 0.0;
+    if (interaction_maf_threshold>0.0) {
+        // calculate median
+        std::vector<float> interaction_val_sorted(interaction_val);
+        std::sort(interaction_val_sorted.begin(), interaction_val_sorted.end());
+        size_t s = interaction_val.size();
+        if ((s%2)==0) {
+            median_interaction = (interaction_val_sorted[s/2] + interaction_val_sorted[(s/2)-1]) / 2.0;
+        } else {
+            median_interaction = interaction_val_sorted[s/2];
+        }
+    }
+
     //Read genotypes
     if (!fd.setRegion(regionGenotype.str())) LOG.error("Failed to get region " + regionGenotype.str() + " in [" + fvcf + "]");
     LOG.println("  * region = " + regionGenotype.str());
@@ -86,7 +99,7 @@ void data::readGenotypesVCF(string fvcf) {
                 }
             }
 
-            //Read data is format is correct
+            //Read data if format is correct
             if (idx_field >= 0) {
                 if (passed_AF) {
                     vector < float > genotype_vec = vector < float > (sample_count, 0.0);
@@ -147,13 +160,45 @@ void data::readGenotypesVCF(string fvcf) {
                         ma_samples = c1+c2;
                         ma_count = alt_alleles;
                         ref_factor = 1;
-                    } else {
+                    } else {  // ref is minor allele
                         maf = ref_alleles / (float)(2*num_samples);
                         ma_samples = c0+c1;
                         ma_count = ref_alleles;
                         ref_factor = -1;
                     }
-                    if (maf>=maf_threshold && ma_samples>=ma_sample_threshold) {
+
+                    std::map<int,int> c_upper;
+                    std::map<int,int> c_lower;
+                    float maf_upper = 0.0;
+                    float maf_lower = 0.0;
+                    if (interaction_maf_threshold>0.0) {
+                        // calculate MAF in each half
+                        for (int i=0; i<genotype_vec.size(); ++i) {
+                            if (genotype_vec[i]!=-1.0) {
+                                r = round(genotype_vec[i]);
+                                if (interaction_val[i] >= median_interaction) {
+                                    c_upper[r]++;
+                                } else {
+                                    c_lower[r]++;
+                                }
+                            }
+                        }
+                        float alt_upper = c_upper[1] + 2*c_upper[2];
+                        maf_upper = alt_upper / (float)(2*(c_upper[0]+c_upper[1]+c_upper[2]));
+                        if (maf_upper>0.5) {
+                            maf_upper = 1.0 - maf_upper;
+                        }
+                        float alt_lower = c_lower[1] + 2*c_lower[2];
+                        maf_lower = alt_lower / (float)(2*(c_lower[0]+c_lower[1]+c_lower[2]));
+                        if (maf_lower>0.5) {
+                            maf_lower = 1.0 - maf_lower;
+                        }
+                    }
+
+                    if (maf>=maf_threshold &&
+                        ma_samples>=ma_sample_threshold &&
+                        maf_lower>=interaction_maf_threshold &&
+                        maf_upper>=interaction_maf_threshold) {
                         genotype_id.push_back(str[2]);
                         genotype_chr.push_back(str[0]);
                         genotype_pos.push_back(atoi(str[1].c_str()));

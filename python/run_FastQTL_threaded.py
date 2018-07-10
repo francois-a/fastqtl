@@ -19,8 +19,10 @@ def cd(cd_path):
     os.chdir(saved_path)
 
 def get_cmd(args, chunk):
-    cmd = os.path.join(fastqtl_dir, 'bin', 'fastQTL')+' --vcf '+args.vcf+' --bed '+args.bed+' --window '+args.window\
-        +' --maf-threshold '+args.maf_threshold+' --ma-sample-threshold '+args.ma_sample_threshold
+    cmd = os.path.join(fastqtl_dir, 'bin', 'fastQTL')+' --vcf '+args.vcf+' --bed '+args.bed+' --window '+args.window \
+        +' --maf-threshold '+args.maf_threshold \
+        +' --ma-sample-threshold '+args.ma_sample_threshold \
+        +' --interaction-maf-threshold '+args.interaction_maf_threshold
     if args.covariates:
         cmd += ' --cov '+args.covariates
     if args.phenotype_groups:
@@ -68,6 +70,7 @@ parser.add_argument('--window', default='1e6', help='Cis-window size. Default va
 parser.add_argument('--threshold', default='', help='Output only significant phenotype-variant pairs with a p-value below threshold (default 1)')
 parser.add_argument('--maf_threshold', default='0.0', help='Include only genotypes with minor allele frequency >=maf_threshold (default 0)')
 parser.add_argument('--ma_sample_threshold', default='0', help='Include only genotypes with >=ma_sample_threshold samples carrying the minor allele (default 0)')
+parser.add_argument('--interaction_maf_threshold', default='0', help='MAF threshold for interactions, applied to lower and upper half of samples')
 parser.add_argument('--fdr', default=0.05, type=np.double)
 parser.add_argument('--seed', default=None, help='Random number generator seed')
 parser.add_argument('--exclude_samples', default=None, help='')

@@ -56,7 +56,8 @@ int main(int argc, char ** argv) {
         ("threshold,T", bpo::value< double >()->default_value(1.0), "P-value threshold used in nominal pass of association")
         ("maf-threshold", bpo::value< double >()->default_value(0.0), "Minor allele frequency threshold used when parsing genotypes")
         ("ma-sample-threshold", bpo::value< int >()->default_value(0), "Minimum number of samples carrying the minor allele; used when parsing genotypes")
-        ("global-af-threshold", bpo::value< double >()->default_value(0.0), "AF threshold for all samples in VCF (used to filter AF in INFO field)");
+        ("global-af-threshold", bpo::value< double >()->default_value(0.0), "AF threshold for all samples in VCF (used to filter AF in INFO field)")
+        ("interaction-maf-threshold", bpo::value< double >()->default_value(0.0), "MAF threshold for interactions, applied to lower and upper half of samples");
 
     bpo::options_description opt_modes ("\33[33mModes\33[0m");
     opt_modes.add_options()
@@ -220,6 +221,10 @@ int main(int argc, char ** argv) {
     if (D.global_af_threshold < 0.0 || D.global_af_threshold >= 0.5) LOG.error("Incorrect --global-af-threshold value  :  0 <= X < 0.5");
     LOG.println("  * Using INFO field AF threshold = " + sutils::double2str(D.global_af_threshold, 4));
 
+    D.interaction_maf_threshold = options["interaction-maf-threshold"].as < double > ();
+    if (D.interaction_maf_threshold < 0.0 || D.interaction_maf_threshold >= 0.5) LOG.error("Incorrect --interaction-maf-threshold  :  0 <= X < 0.5");
+    LOG.println("  * Applying interaction MAF AF threshold = " + sutils::double2str(D.interaction_maf_threshold, 4));
+
     if (options.count("chunk")) {
         vector < int > nChunk = options["chunk"].as < vector < int > > ();
         if (nChunk.size() != 2) LOG.error ("--chunk needs 2 integer arguments");
@@ -267,11 +272,11 @@ int main(int argc, char ** argv) {
         // 10. READ FILES
         //---------------
         D.readPhenotypes(options["bed"].as < string > ());
+        if (options.count("interaction")) D.readInteractions(options["interaction"].as < string > ());  // used by optional MAF filter, read first
         D.readGenotypesVCF(options["vcf"].as < string > ());
         if (options.count("cov")) D.readCovariates(options["cov"].as < string > ());
         if (options.count("map")) D.readThresholds(options["map"].as < string > ());
         if (options.count("grp")) D.readGroups(options["grp"].as < string > ());
-        if (options.count("interaction")) D.readInteractions(options["interaction"].as < string > ());
 
         //------------------------
         // 11. INITIALIZE ANALYSIS

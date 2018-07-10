@@ -46,6 +46,7 @@ public:
     float maf_threshold;                                // minor allele frequency threshold
     int ma_sample_threshold;                            // minor allele sample threshold
     float global_af_threshold;
+    float interaction_maf_threshold;
 
     //SAMPLES
     int sample_count;                                   //sample number
