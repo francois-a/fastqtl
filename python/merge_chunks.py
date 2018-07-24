@@ -43,7 +43,6 @@ if __name__=='__main__':
     parser.add_argument('log_list', help='List of chunks')
     parser.add_argument('prefix', help='Prefix for output file name')
     parser.add_argument('--permute', action='store_true')
-    parser.add_argument('--grp_permute', action='store_true')
     parser.add_argument('--fdr', default=0.05, type=np.double)
     parser.add_argument('--qvalue_lambda', default=None, help='lambda parameter for pi0est in qvalue.')
     parser.add_argument('-o', '--output_dir', default='.', help='Output directory')
@@ -63,8 +62,8 @@ if __name__=='__main__':
         with open(args.chunk_list) as f:
             with gzip.open(f.readline().strip(), 'rt') as f2:
                 ncol = len(f2.readline().strip().split('\t'))
-        if ncol==19:
-            header += ['group_id', 'num_features']
+        if ncol==19:  # grp_permute
+            header += ['group_id', 'group_size']
             print('  * group permutation output detected')
         prefix = args.prefix
     else:  # nominal
@@ -79,7 +78,7 @@ if __name__=='__main__':
         merge_chunks(args.chunk_list, header, args.output_dir, prefix)
         merge_logs(args.log_list, args.output_dir, prefix)
 
-        if args.permute or args.grp_permute:
+        if args.permute:
             print('Calculating q-values', flush=True)
             cmd = 'Rscript '+os.path.join(fastqtl_dir, 'R', 'calculateSignificanceFastQTL.R')\
                 +' '+args.prefix+'.txt.gz '+str(args.fdr)+' '+args.prefix+'.genes.txt.gz'

@@ -110,9 +110,7 @@ with cd(args.output_dir):
             +' {} {} {} --fdr {} -o .'.format(chunk_list_file.name, log_list_file.name, args.prefix, args.fdr)
         if args.qvalue_lambda:
             cmd += ' --qvalue_lambda {}'.format(args.qvalue_lambda)
-        if args.phenotype_groups:
-            cmd += ' --grp_permute'
-        elif args.permute:
+        if args.permute:
             cmd += ' --permute'
         subprocess.check_call(cmd, shell=True)
 
