@@ -19,36 +19,41 @@
 
 
 void data::readGroups(string fgrp) {
-	string buffer;
-	vector < string > str;
+    string buffer;
+    vector < string > str;
 
-	phenotype_grp = vector < string > (phenotype_count, "");
-	vector < bool > phenotype_mask = vector < bool > (phenotype_count, false);
+    phenotype_grp = vector < string > (phenotype_count, "");
+    vector < bool > phenotype_mask = vector < bool > (phenotype_count, false);
 
-	//Initialise
-	LOG.println("\nReading phenotype groups in [" + fgrp + "]");
-	ifile fdg (fgrp);
-	while (getline(fdg, buffer)) {
-		sutils::tokenize(buffer, str);
+    // map phenotype IDs to index
+    std::map<std::string,int> phenotype_index_map;
+    for (int p=0; p<phenotype_count; ++p) {
+        phenotype_index_map[phenotype_id[p]] = p;
+    }
 
-		if (str.size() < 2) LOG.error("Incorrect number of columns in [" + fgrp + "], observed = " + sutils::int2str(str.size())  + " expected == 2");
+    //Initialise
+    LOG.println("\nReading phenotype groups in [" + fgrp + "]");
+    ifile fdg (fgrp);
+    while (getline(fdg, buffer)) {
+        sutils::tokenize(buffer, str);
 
-		int phenotype_idx = -1;
-		for (int p = 0 ; p < phenotype_count && phenotype_idx < 0 ; p ++) if (phenotype_id[p] == str[0]) phenotype_idx = p;
+        if (str.size() < 2) LOG.error("Incorrect number of columns in [" + fgrp + "], observed = " + sutils::int2str(str.size())  + " expected == 2");
 
-		if (phenotype_idx >= 0) {
-			phenotype_grp[phenotype_idx] = str[1];
-			phenotype_mask[phenotype_idx] = true;
-		}
-	}
-	fdg.close();
+        // if phenotype was present in input BED, add group ID
+        if (phenotype_index_map.count(str[0]) > 0) {
+            int phenotype_idx = phenotype_index_map[str[0]];
+            phenotype_grp[phenotype_idx] = str[1];
+            phenotype_mask[phenotype_idx] = true;
+        }
+    }
+    fdg.close();
 
-	//3.0 Make sure that each MP has a qvalue
-	int n_set= 0, n_unset = 0;
-	for (int p = 0 ; p < phenotype_count ; p ++) {
-		if (phenotype_mask[p]) n_set ++;
-		else n_unset ++;
-	}
-	LOG.println("  * #phenotypes set = " + sutils::int2str(n_set));
-	if (n_unset > 0) LOG.error(sutils::int2str(n_unset) + " phenotypes without groups!");
+    //3.0 Make sure that each MP has a value
+    int n_set= 0, n_unset = 0;
+    for (int p = 0 ; p < phenotype_count ; p ++) {
+        if (phenotype_mask[p]) n_set ++;
+        else n_unset ++;
+    }
+    LOG.println("  * #phenotypes set = " + sutils::int2str(n_set));
+    if (n_unset > 0) LOG.error(sutils::int2str(n_unset) + " phenotypes without groups!");
 }
