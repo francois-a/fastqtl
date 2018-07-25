@@ -254,6 +254,7 @@ int main(int argc, char ** argv) {
         //---------------------
         int nChunks = atoi(options["commands"].as < vector < string > > ()[0].c_str());
         D.scanPhenotypes(options["bed"].as < string > ());
+        if (options.count("grp")) D.readGroups(options["grp"].as < string > ());  // need to read this before determining chunks (clusterizePhenotypes)
         D.clusterizePhenotypes(nChunks);
         D.writeCommands(options["commands"].as < vector < string > > ()[1], nChunks, argc, argv);
     } else {
@@ -262,6 +263,7 @@ int main(int argc, char ** argv) {
         //--------------
         if (options.count("chunk")) {
             D.scanPhenotypes(options["bed"].as < string > ());
+            if (options.count("grp")) D.readGroups(options["grp"].as < string > ());  // need to read this before determining chunks (clusterizePhenotypes)
             D.clusterizePhenotypes(options["chunk"].as < vector < int > > ()[1]);
             D.setPhenotypeRegion(options["chunk"].as < vector < int > > ()[0] - 1);
             D.clear();
@@ -276,7 +278,7 @@ int main(int argc, char ** argv) {
         D.readGenotypesVCF(options["vcf"].as < string > ());
         if (options.count("cov")) D.readCovariates(options["cov"].as < string > ());
         if (options.count("map")) D.readThresholds(options["map"].as < string > ());
-        if (options.count("grp")) D.readGroups(options["grp"].as < string > ());
+        if (options.count("grp")) D.readGroups(options["grp"].as < string > ());  // read groups again, this time limited to phenotypes
 
         //------------------------
         // 11. INITIALIZE ANALYSIS

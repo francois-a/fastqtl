@@ -88,16 +88,48 @@ bool data::checkCovariate(string & id) {
 }
 
 void data::clusterizePhenotypes(int K) {
-    //check K
-    if (K < 1) LOG.error("Number of chunks needs to be > 0");
-    if (K > phenotype_count) LOG.error("Number of chunks (" + sutils::int2str(K) + ") is greater than the number of phenotypes (" + sutils::int2str(phenotype_count) + ")");
 
-    // count number of phenotypes per chromosome
+    if (K < 1) LOG.error("Number of chunks needs to be > 0");
+
+    std::map<std::string, vector<int> > chunk_sizes;
+    // only used if phenotype groups are provided:
+    std::map<std::string, vector<int> > group_sizes;
+    int group_count = 0;
     std::map<std::string,int> num_pheno;
-    for (int p=0; p<phenotype_count; ++p) {
-        num_pheno[phenotype_chr[p]]++;
+
+    if (phenotype_grp.empty()) {
+        if (K > phenotype_count) LOG.error("Number of chunks (" + sutils::int2str(K) + ") is greater than the number of phenotypes (" + sutils::int2str(phenotype_count) + ")");
+
+        // count number of phenotypes per chromosome
+        for (int p=0; p<phenotype_count; ++p) {
+            num_pheno[phenotype_chr[p]]++;
+        }
+        if (num_pheno.size() > K) LOG.error("Number of chunks needs to be >= #chr");
+
+    } else {
+        LOG.println("\nCalculating chunks based on group sizes");
+
+        // count number of groups and group sizes for each chr
+        int group_size = 1;
+        // phenotype_grp: mapping of BED position to group_id, parsed in readGroups.cpp
+        for (int p=1; p<phenotype_count; ++p) {
+            if (phenotype_grp[p]!=phenotype_grp[p-1]) {  // new group
+                group_sizes[phenotype_chr[p-1]].push_back(group_size);  // push previous group
+                group_size = 1;
+            } else {
+                group_size += 1;
+            }
+        }
+        // push last
+        group_sizes[phenotype_chr[phenotype_count-1]].push_back(group_size);
+        // count totals
+        for(const auto &kv : group_sizes) {
+            num_pheno[kv.first] += kv.second.size();
+            group_count += kv.second.size();
+        }
+        if (num_pheno.size() > K) LOG.error("Number of chunks needs to be >= #chr");
+        if (K > group_count) LOG.error("Number of chunks cannot exceed number of phenotype groups");
     }
-    if (num_pheno.size() > K) LOG.error("Number of chunks needs to be > #chr");
 
     // initialize chunk size to all phenotypes
     std::map<std::string,int> chunk_size(num_pheno);
@@ -124,8 +156,7 @@ void data::clusterizePhenotypes(int K) {
     }
 
     // evenly distributed chunk sizes
-    std::map<std::string, vector<int> > chunk_sizes;
-    for (const auto &kv : num_pheno) {
+    for (const auto &kv : num_pheno) {  // loop chrs
         chunk_sizes[kv.first] = vector <int> (num_chunks[kv.first], (int)floor(num_pheno[kv.first]/num_chunks[kv.first]));
         int d = num_pheno[kv.first] - std::accumulate(chunk_sizes[kv.first].begin(), chunk_sizes[kv.first].end(), 0);
         for (int i=0;i<d;++i) {
@@ -136,21 +167,49 @@ void data::clusterizePhenotypes(int K) {
     // now, split according to chr and chunk size
     phenotype_cluster = vector < vector < int > > (1, vector < int > (1, 0));  // first phenotype already stored (index 0)
     int chunk = 0;
-    int chunk_index = 1;
-    for (int p=1; p<phenotype_count; ++p) {
-        if (phenotype_chr[p]!=phenotype_chr[p-1]) {  // new chr --> new chunk
-            chunk = 0;
-            chunk_index = 1;
-            phenotype_cluster.push_back(vector < int > (1, p));
-        } else if (chunk_index==chunk_sizes[phenotype_chr[p]][chunk]) {  // new chunk
-            chunk += 1;
-            chunk_index = 1;
-            phenotype_cluster.push_back(vector < int > (1, p));
-        } else {  // add to current chunk
-            phenotype_cluster.back().push_back(p);
-            chunk_index += 1; // next index in current chunk
+    int chunk_index = 1;  // next position in chunk
+
+    if (phenotype_grp.empty()) {
+        for (int p=1; p<phenotype_count; ++p) {
+            if (phenotype_chr[p]!=phenotype_chr[p-1]) {  // new chr --> new chunk
+                chunk = 0;
+                chunk_index = 1;
+                phenotype_cluster.push_back(vector < int > (1, p));
+            } else if (chunk_index==chunk_sizes[phenotype_chr[p]][chunk]) {  // new chunk
+                chunk += 1;
+                chunk_index = 1;
+                phenotype_cluster.push_back(vector < int > (1, p));
+            } else {  // add to current chunk
+                phenotype_cluster.back().push_back(p);
+                chunk_index += 1; // next index in current chunk
+            }
         }
+    } else {
+        int current_group = 0;  // within chunk
+        int current_chunk = 0;  // within chr
+        int groups_parsed = 1;
+        for (int p=1; p<phenotype_count; ++p) {
+            if (phenotype_grp[p]!=phenotype_grp[p-1]) {  // new group
+                current_group += 1;
+                groups_parsed += 1;
+                if (phenotype_chr[p]!=phenotype_chr[p-1]) {  // new chr -> new chunk, new group
+                    phenotype_cluster.push_back(vector < int > (1, p));
+                    current_group = 0;
+                    current_chunk = 0;
+                } else if (current_group==chunk_sizes[phenotype_chr[p]][current_chunk]) {  // previous group was last in chunk
+                    phenotype_cluster.push_back(vector < int > (1, p));
+                    current_group = 0;
+                    current_chunk += 1;
+                } else {  // add to current chunk
+                    phenotype_cluster.back().push_back(p);
+                }
+            } else {  // same group
+                phenotype_cluster.back().push_back(p);
+            }
+        }
+        LOG.println("  * groups parsed = "+ sutils::int2str(groups_parsed) );
     }
+
     if (phenotype_cluster.size() != K)
         LOG.error("Chunks ("+sutils::int2str(phenotype_cluster.size())+") do not match input ("+sutils::int2str(K)+")");
 }
