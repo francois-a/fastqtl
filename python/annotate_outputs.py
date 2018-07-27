@@ -56,7 +56,7 @@ if args.snp_lookup:
 col_order += ['ma_samples', 'ma_count', 'maf', 'ref_factor',
     'pval_nominal', 'slope', 'slope_se', 'pval_perm', 'pval_beta']
 if 'group_id' in gene_df:
-    col_order += ['group_id', 'num_features']
+    col_order += ['group_id', 'group_size']
 col_order += ['qval', 'pval_nominal_threshold']
 gene_df = gene_df[col_order]
 
