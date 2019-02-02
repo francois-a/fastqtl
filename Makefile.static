@@ -19,14 +19,15 @@ LDFLAG_OPTI=-O3
 #includes
 INC_BASE=-Isrc -I$(PATH_TABX) -I$(PATH_EIGN)
 INC_MATH=-I/xchip/gtex/francois/R-3.2.4/src/include/
-INC_BOOST=-I/broad/software/free/Linux/redhat_6_x86_64/pkgs/boost_1.59.0/
+INC_BOOST=-I/broad/software/free/Linux/redhat_6_x86_64/pkgs/boost_1.55.0/
+INC_GSL=-I/broad/software/free/Linux/redhat_6_x86_64/pkgs/gsl_1.16/
 
 #libraries
-LIB_BASE=-Wl,-Bstatic -lz -lblas -lbz2 -Wl,-Bdynamic -lm -lgsl -lgslcblas
+LIB_BASE=-Wl,-Bstatic -lz -lblas -lbz2 -lgsl -lgslcblas -Wl,-Bdynamic -lm
 LIB_TABX=$(PATH_TABX)/libtabix.a
 LIB_RMATH=/xchip/gtex/francois/R-3.2.4/src/nmath/standalone/libRmath.a
-LIB_BPO=/broad/software/free/Linux/redhat_6_x86_64/pkgs/boost_1.59.0/lib/libboost_program_options.a
-LIB_BIO=/broad/software/free/Linux/redhat_6_x86_64/pkgs/boost_1.59.0/lib/libboost_iostreams.a
+LIB_BPO=/broad/software/free/Linux/redhat_6_x86_64/pkgs/boost_1.55.0/lib/libboost_program_options.a
+LIB_BIO=/broad/software/free/Linux/redhat_6_x86_64/pkgs/boost_1.55.0/lib/libboost_iostreams.a
 
 #files (binary, objects, headers & sources)
 FILE_BIN=bin/fastQTL.static
@@ -39,8 +40,8 @@ all: linux
 
 #linux release
 linux: CXXFLAG=$(CXXFLAG_OPTI) $(CXXFLAG_WARN)
-linux: IFLAG=$(INC_BASE) $(INC_MATH) $(INC_BOOST)
-linux: LIB=$(LIB_RMATH) $(LIB_BPO) $(LIB_BIO) $(LIB_TABX) $(LIB_BASE)
+linux: IFLAG=$(INC_BASE) $(INC_MATH) $(INC_BOOST) $(INC_GSL)
+linux: LIB=$(LIB_RMATH) $(LIB_BPO) $(LIB_BIO) $(LIB_TABX) $(LIB_BASE) $(LIB_GSL)
 linux: LDFLAG=$(LDFLAG_OPTI)  
 linux: $(FILE_BIN)
 
