@@ -38,7 +38,9 @@ gene_df = pd.read_csv(args.permutation_results, sep='\t', index_col=0)
 if 'group_id' in gene_df:
     gene_info = pd.DataFrame(data=[gene_dict[i] for i in gene_df['group_id']], columns=['gene_name', 'gene_chr', 'gene_start', 'gene_end', 'strand'], index=gene_df.index)
 else:
-    gene_info = pd.DataFrame(data=[gene_dict[i] for i in gene_df.index], columns=['gene_name', 'gene_chr', 'gene_start', 'gene_end', 'strand'], index=gene_df.index)
+    attr = {i:i.split(":")[4] for i in gene_df.index}
+    gene_info = pd.DataFrame(data=[gene_dict[attr[i]] for i in gene_df.index], columns=['gene_name', 'gene_chr', 'gene_start', 'gene_end', 'strand'], index=gene_df.index)
+    
 gene_df = pd.concat([gene_info, gene_df], axis=1)
 assert np.all(gene_df.index==gene_info.index)
 
